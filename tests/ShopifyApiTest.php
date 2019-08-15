@@ -219,4 +219,106 @@ class ShopifyApiTest extends TestCase {
         self::$api->get('products');
         $this->assertEquals(5, time() - $start);
     }
+
+    /**
+     * @dataProvider invalidApiVersion
+     * @param $invalidApiVersion API version to be provided by the provided invalidApiVersion
+     */
+    public function testThrowingAnExceptionOnPassingApiVersionInInvalidFormatToConstructor($invalidApiVersion) {
+        $this->expectException(InvalidArgumentException::class);
+        new API('test', 'test', [
+            'api_version' => $invalidApiVersion
+        ]);
+    }
+
+    /**
+     * @dataProvider invalidApiVersion
+     * @param $invalidApiVersion API version to be provided by the invalidApiVersion provider
+     */
+    public function testThrowingAnExceptionOnSettingApiVersionInInvalidFormatAfterInitialization($invalidApiVersion) {
+        $api = new API('test', 'test');
+        $this->expectException(InvalidArgumentException::class);
+        $api->setVersion($invalidApiVersion);
+    }
+
+    /**
+     * @dataProvider validApiVersion
+     * @param $validApiVersion API version to be provided by the validApiVersion provider
+     */
+    public function testSettingShopifyApiVersionWithConstructor($validApiVersion) {
+        $api = new API('test', 'test', [
+            'api_version' => $validApiVersion
+        ]);
+        $this->assertEquals($validApiVersion, $api->getVersion());
+    }
+
+    /**
+     * @dataProvider  validApiVersion
+     * @param $validApiVersion
+     */
+    public function testSettingShopifyApiVersionAfterInitialization($validApiVersion) {
+        $apiVersion = '2019-04';
+        $api = new API('test', 'test', ['api_version' => $apiVersion]);
+        $api->setVersion($validApiVersion);
+        $this->assertEquals($validApiVersion, $api->getVersion());
+    }
+
+    public function testGettingShopifyApiVersionWithoutSettingItWithConstructor() {
+        $mock = new MockHandler();
+        $handler = HandlerStack::create($mock);
+        $api = new API('test', 'test', [
+            'handler' => $handler
+        ]);
+        $apiVersion = '2019-04';
+        $mock->append(
+            new Response(200, ['X-Shopify-API-Version' => $apiVersion], '{"shop": {"id": 1234567890}}')
+        );
+        $this->assertEquals($apiVersion, $api->getVersion());
+        $this->assertEquals($apiVersion, $api->getOption('api_version'));
+    }
+
+    public function testSettingApiVersionViaSetOption() {
+        $api = new API('test', 'test');
+        $api->setOption('api_version', '2019-10');
+        $this->assertEquals('2019-10', $api->getVersion());
+    }
+
+    /**
+     * @return array A list of API versions in invalid format
+     */
+    public function invalidApiVersion() {
+        return [
+            ['2019'],
+            [2020],
+            ['2018-04'],
+            ['2019-4'],
+            ['20-01'],
+            ['2019-00'],
+            ['2020-02'],
+            ['2020-03'],
+            ['2020-05'],
+            ['2020-06'],
+            ['2020-08'],
+            ['2020-09'],
+            ['2020-11'],
+            ['2020-12'],
+            ['2019-13']
+        ];
+    }
+
+    /**
+     * @return array A list of API version in a valid (not real valid API versions)
+     */
+    public function validApiVersion() {
+        return [
+            ['2019-04'],
+            ['2019-07'],
+            ['2019-10'],
+            ['2020-01'],
+            ['2020-04'],
+            ['2020-07'],
+            ['2020-10'],
+            ['2021-01']
+        ];
+    }
 }

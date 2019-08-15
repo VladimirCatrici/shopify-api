@@ -140,4 +140,36 @@ class ShopifyApiOnlineTest extends TestCase {
             $this->assertEquals('{"errors":"Not Found"}', $arr['response']['body']);
         }
     }
+
+    public function testChangingApiVersion() {
+        self::$api->get('products/count');
+        $apiVersion = self::$api->getVersion();
+        $regex = '/^(\d{4})-(\d{2})$/';
+        $this->assertRegExp($regex, $apiVersion);
+
+        $nextApiVersion = $this->getNextApiVersion($apiVersion);
+        self::$api->setVersion($nextApiVersion);
+        self::$api->get('products/count');
+        $this->assertEquals($nextApiVersion, self::$api->respHeaders['X-Shopify-API-Version'][0]);
+
+        $nextApiVersion = $this->getNextApiVersion($nextApiVersion);
+        self::$api->setVersion($nextApiVersion);
+        self::$api->get('products/count');
+        $this->assertEquals($nextApiVersion, self::$api->respHeaders['X-Shopify-API-Version'][0]);
+    }
+
+    private function getNextApiVersion($currentApiVersion) {
+        $regex = '/^(\d{4})-(\d{2})$/';
+        preg_match($regex, $currentApiVersion, $matches);
+        if ($matches[2] == '01') {
+            $nextApiVersion = $matches[1] . '-04';
+        } elseif ($matches[2] == '04') {
+            $nextApiVersion = $matches[1] . '-07';
+        } elseif ($matches[2] == '07') {
+            $nextApiVersion = $matches[1] . '-10';
+        } else {
+            $nextApiVersion = ($matches[1] + 1) . '-01';
+        }
+        return $nextApiVersion;
+    }
 }

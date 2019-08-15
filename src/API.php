@@ -10,12 +10,15 @@ use Psr\Http\Message\StreamInterface;
 
 class API {
 
+    private $handle;
     private $baseUrl;
     private $accessToken;
 
     public $respCode;
     public $respHeaders;
-
+    /**
+     * @var Client
+     */
     private $client;
 
     private $options = [
@@ -43,7 +46,12 @@ class API {
          * @var int Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate`
          * option
          */
-        'max_limit_rate_sleep_sec' => 1
+        'max_limit_rate_sleep_sec' => 1,
+
+        /**
+         * @var string API version, expecting format is YYYY-MM
+         */
+        'api_version' => null
     ];
 
     /**
@@ -53,8 +61,7 @@ class API {
      * @param array $clientOptions GuzzleHttp client options
      */
     public function __construct(string $domain, string $accessToken, array $clientOptions = []) {
-        $domain = trim(preg_replace('/\.myshopify\.com$/', '', $domain));
-        $this->baseUrl = 'https://' . $domain . '.myshopify.com/admin/';
+        $this->handle = trim(preg_replace('/\.myshopify\.com$/', '', $domain));
         $this->accessToken = $accessToken;
 
         $internalOptions = array_keys($this->options);
@@ -65,13 +72,23 @@ class API {
             }
         }
 
-        $this->client = new Client([
+        $this->baseUrl = 'https://' . $this->handle . '.myshopify.com/admin/' . (
+            !empty($this->options['api_version']) ? 'api/' . $this->options['api_version'] . '/' : '');
+        $client = new Client([
             'base_uri' => $this->baseUrl,
             'headers' => [
                 'Content-Type' => 'application/json',
                 'X-Shopify-Access-Token' => $this->accessToken
             ]
         ] + $clientOptions);
+        $this->setClient($client);
+    }
+
+    /**
+     * @param Client $client
+     */
+    private function setClient($client) {
+        $this->client = $client;
     }
 
     /**
@@ -213,6 +230,65 @@ class API {
         if (!array_key_exists($key, $this->options)) {
             throw new InvalidArgumentException(sprintf('Trying to set an invalid option `%s`', $key));
         }
+
+        if ($key == 'api_version') {
+            $value = trim($value);
+            $this->validateApiVersion($value);
+
+            // Update client config
+            if (!empty($this->client)) {
+                $currentClientConfig = $this->client->getConfig();
+                $this->baseUrl = preg_replace('/admin\/(api\/\d{4}-\d{2}\/)?$/', 'admin/api/' . $value . '/', $this->baseUrl);
+                $currentClientConfig['base_uri'] = $this->baseUrl;
+                $this->setClient(new Client($currentClientConfig));
+            }
+        }
+
         $this->options[$key] = $value;
+    }
+
+    private function validateApiVersion($value) {
+        $readMoreAboutApiVersioning = 'Read more about versioning here: https://help.shopify.com/en/api/versioning';
+        if (!preg_match('/^(\d{4})-(\d{2})$/', $value, $matches)) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid API version format: "%s". The "YYYY-MM" format expected. ' . $readMoreAboutApiVersioning,
+                    $value)
+            );
+        }
+        if ($matches[1] < 2019) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid API version year: "%s". The API versioning has been released in 2019. ' . $readMoreAboutApiVersioning,
+                    $value)
+            );
+        }
+        if (!preg_match('/01|04|07|10/', $matches[2])) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid API version month: "%s". 
+                    The API versioning has been released on April 2019 and new releases scheduled every 3 months, 
+                    so only "01", "04", "07" and "10" expected as a month. Otherwise, 
+                    "404 Not Found" will be returned by Shopify. ' . $readMoreAboutApiVersioning,
+                        $matches[0])
+            );
+        }
+    }
+
+    public function setVersion($version) {
+        $this->setOption('api_version', $version);
+    }
+
+    public function getVersion() {
+        $version = $this->getOption('api_version');
+        if (empty($version)) {
+            $headerKey = 'X-Shopify-API-Version';
+            if (is_array($this->respHeaders) && array_key_exists($headerKey, $this->respHeaders)) {
+                $this->options['api_version'] = $this->respHeaders[$headerKey][0];
+            } else {
+                $this->get('shop');
+                if (array_key_exists($headerKey, $this->respHeaders)) {
+                    $this->options['api_version'] = $this->respHeaders[$headerKey][0];
+                }
+            }
+        }
+        return $this->getOption('api_version');
     }
 }
