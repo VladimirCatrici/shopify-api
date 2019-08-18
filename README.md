@@ -123,6 +123,19 @@ if ($api->respCode == 200) {
 }
 ```
 
+Collection
+-
+You can use Collection object to get all the items from the specific endpoint. 
+This library works fine with both page-based and cursor-based pagination and switches between them based on API version.
+```php
+$api = new API('your-store-domain', 'access-token');
+$products = new Collection($api, 'products');
+foreach ($products as $product) {
+    printf('#%d. %s [$%f], 
+        $product['id'], $product['title'], $product['price']);
+}
+```
+
 Troubleshooting
 -
 ```php
