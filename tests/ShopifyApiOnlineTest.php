@@ -6,6 +6,7 @@ namespace ShopifyAPI\Test;
 use VladimirCatrici\Shopify\API;
 use GuzzleHttp\Exception\GuzzleException;
 use PHPUnit\Framework\TestCase;
+use VladimirCatrici\Shopify\Collection;
 
 class ShopifyApiOnlineTest extends TestCase {
     /**
@@ -141,6 +142,10 @@ class ShopifyApiOnlineTest extends TestCase {
         }
     }
 
+    /**
+     * @throws API\RequestException
+     * @throws GuzzleException
+     */
     public function testChangingApiVersion() {
         self::$api->get('products/count');
         $apiVersion = self::$api->getVersion();
@@ -156,6 +161,63 @@ class ShopifyApiOnlineTest extends TestCase {
         self::$api->setVersion($nextApiVersion);
         self::$api->get('products/count');
         $this->assertEquals($nextApiVersion, self::$api->respHeaders['X-Shopify-API-Version'][0]);
+    }
+
+    /**
+     * @throws API\RequestException
+     * @throws GuzzleException
+     */
+    public function testCollection() {
+        // Create test products
+        $createdProductIds = [];
+        for ($i = 1; $i < 6; $i++) {
+            $title = 'Product ' . $i;
+            $variant = [
+                'price' => mt_rand(0, 99) . '.' . mt_rand(0, 99),
+                'sku' => 'TEST' . $i
+            ];
+            $resp = self::$api->post('products', [
+                'product' => [
+                    'title' => $title,
+                    'variants' => [$variant]
+                ]
+            ]);
+            $respVariant = $resp['variants'][0];
+            $createdProductIds[] = $resp['id'];
+            $this->assertEquals(201, self::$api->respCode);
+            $this->assertEquals($title, $resp['title']);
+            $this->assertEquals($variant['price'], $respVariant['price']);
+            $this->assertEquals($variant['sku'], $respVariant['sku']);
+        }
+
+        $newCount = self::$api->get('products/count');
+        $products = new Collection(self::$api, 'products');
+        $this->assertEquals($newCount, count($products));
+        $this->assertEquals($newCount, $products->count());
+        $iterationCount = 0;
+        foreach ($products as $product) {
+            $this->assertInternalType('array', $product);
+            $iterationCount++;
+        }
+        $this->assertEquals($newCount, $iterationCount);
+
+        // Delete created variants
+        foreach ($createdProductIds as $id) {
+            self::$api->delete('products/' . $id);
+            $this->assertEquals(200, self::$api->respCode);
+        }
+
+        $newCount = self::$api->get('products/count');
+        $this->assertEquals(0, $newCount);
+        $products = new Collection(self::$api, 'products');
+        $this->assertEquals($newCount, count($products));
+        $this->assertEquals($newCount, $products->count());
+        $iterationCount = 0;
+        foreach ($products as $product) {
+            $this->assertInternalType('array', $product);
+            $iterationCount++;
+        }
+        $this->assertEquals($newCount, $iterationCount);
     }
 
     private function getNextApiVersion($currentApiVersion) {

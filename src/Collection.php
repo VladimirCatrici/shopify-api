@@ -192,7 +192,7 @@ class Collection implements Iterator, Countable, ArrayAccess {
      */
     private function fetch() {
         $options = [
-            'limit' => $this->page
+            'limit' => $this->limit
         ];
         if ($this->isCursorBasedPagination) {
             /**
