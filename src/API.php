@@ -1,6 +1,8 @@
 <?php
 namespace VladimirCatrici\Shopify;
 
+use DateTime;
+use DateTimeZone;
 use VladimirCatrici\Shopify\API\RequestException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -140,7 +142,6 @@ class API {
      * @param array $query
      * @param array $data
      * @return mixed|StreamInterface
-     * @throws GuzzleException
      * @throws RequestException
      */
     private function request($method, $endpoint, $query = [], $data = []) {
@@ -177,6 +178,8 @@ class API {
                 } else {
                     break;
                 }
+            } catch (GuzzleException $e) {
+                throw new RequestException($this->client, $e);
             }
         }
 
@@ -283,12 +286,31 @@ class API {
             if (is_array($this->respHeaders) && array_key_exists($headerKey, $this->respHeaders)) {
                 $this->options['api_version'] = $this->respHeaders[$headerKey][0];
             } else {
-                $this->get('shop');
-                if (array_key_exists($headerKey, $this->respHeaders)) {
-                    $this->options['api_version'] = $this->respHeaders[$headerKey][0];
-                }
+                $this->options['api_version'] = $this->getOldestSupportedVersion();
             }
         }
         return $this->getOption('api_version');
+    }
+
+    private function getOldestSupportedVersion() {
+        $dt = new DateTime();
+        $tz = new DateTimeZone('UTC');
+        $dt->setTimezone($tz);
+        $currentYearMonth = $dt->format('Y-m');
+        if ($currentYearMonth < '2020-04') {
+            return '2019-04';
+        }
+        $currentYearMonthParts = explode('-', $currentYearMonth);
+        $currentYear = $currentYearMonthParts[0];
+        $currentMonth = $currentYearMonthParts[1];
+
+        $monthMapping = [
+            '01' => '04', '02' => '04', '03' => '04',
+            '04' => '07', '05' => '07', '06' => '07',
+            '07' => '10', '08' => '10', '09' => '10',
+            '10' => '01', '11' => '01', '12' => '01'
+        ];
+
+        return (--$currentYear . '-' . $monthMapping[$currentMonth]);
     }
 }

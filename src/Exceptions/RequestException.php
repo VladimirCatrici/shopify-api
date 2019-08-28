@@ -5,6 +5,7 @@ namespace VladimirCatrici\Shopify\API;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Exception\GuzzleException;
 
 class RequestException extends Exception {
     /**
@@ -17,9 +18,16 @@ class RequestException extends Exception {
      */
     private $response;
 
-    public function __construct(Client $client, \GuzzleHttp\Exception\RequestException $previous = null) {
+    /**
+     * RequestException constructor.
+     * @param Client $client
+     * @param GuzzleException|\GuzzleHttp\Exception\RequestException $previous
+     */
+    public function __construct(Client $client, $previous = null) {
         $this->client = $client;
-        $this->response = $previous->getResponse();
+        if (method_exists($previous, 'getResponse')) {
+            $this->response = $previous->getResponse();
+        }
         parent::__construct($this->response->getBody(), $this->response->getStatusCode(), $previous);
     }
 
@@ -34,16 +42,23 @@ class RequestException extends Exception {
      * @return string
      */
     public function getDetailsJson() {
-        $body = $this->response->getBody();
-        $body->seek(0);
-        return json_encode([
-            'msg' => parent::getPrevious()->getMessage(),
-            'request' => $this->client->getConfig(),
-            'response' => [
-                'code' => $this->response->getStatusCode(),
-                'body' => $body->getContents(),
-                'headers' => $this->response->getHeaders()
-            ]
-        ]);
+        if (!empty($this->response)) {
+            $body = $this->response->getBody();
+            $body->seek(0);
+            return json_encode([
+                'msg' => parent::getPrevious()->getMessage(),
+                'request' => $this->client->getConfig(),
+                'response' => [
+                    'code' => $this->response->getStatusCode(),
+                    'body' => $body->getContents(),
+                    'headers' => $this->response->getHeaders()
+                ]
+            ]);
+        } else {
+            return json_encode([
+                'msg' => parent::getPrevious()->getMessage(),
+                'request' => $this->client->getConfig()
+            ]);
+        }
     }
 }

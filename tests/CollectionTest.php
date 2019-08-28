@@ -1,6 +1,7 @@
 <?php
 namespace ShopifyAPI\Tests;
 
+use BadMethodCallException;
 use VladimirCatrici\Shopify\API;
 use VladimirCatrici\Shopify\Collection;
 use GuzzleHttp\Exception\GuzzleException;
@@ -21,6 +22,40 @@ class CollectionTest extends TestCase {
      * @var API
      */
     private static $api;
+
+    private /** @noinspection PhpUnusedPrivateFieldInspection */
+        $countEndpointAvailable = [
+        'customers',
+        'customer_saved_searches',
+        'products',
+        'products\/\d+\/images',
+        'products\/\d+\/variants',
+        'product_listings',
+        'custom_collections',
+        'smart_collections',
+        'collects',
+        'price_rules',
+        'draft_orders',
+        'orders',
+        'orders\/\d+\/transactions',
+        'orders\/\d+\/fulfillments',
+        'gift_cards',
+        'checkouts',
+        'checkouts\/\[a-z0-9]+\/payments',
+        'blogs',
+        'blogs\/\d+\/articles',
+        'comments',
+        'pages',
+        'countries',
+        'countries\/\d+\/provinces',
+        'script_tags',
+        'metafields',
+        'locations',
+        'redirects',
+        'webhooks',
+        'marketing_events',
+        'events'
+    ];
 
     public static function setUpBeforeClass() {
         self::$api = new API('test', 'test');
@@ -50,6 +85,7 @@ class CollectionTest extends TestCase {
      */
     public function testIteration() {
         $this->mockCollection(2, 10);
+        self::$mock->append(new Response(200, [], '{}'));
         $products = new Collection(self::$api, 'products', ['limit' => 10]);
         $this->assertEquals(20, count($products));
         foreach ($products as $i => $product) {
@@ -180,6 +216,30 @@ class CollectionTest extends TestCase {
     }
 
     /**
+     * @dataProvider cursorBasedPaginationEndpointsThatSupportCountOperation
+     * @param $apiVersion
+     * @param $endpoint
+     * @return void [$apiVersion, $endpoint] to be used by testCursorBasedPaginationThrowsExceptionOnArrayAccess
+     * @throws API\RequestException
+     * @throws GuzzleException
+     */
+    public function testArrayAccessReadOperationsWorkInEligibleApiVersions($apiVersion, $endpoint) {
+        $apiVersion = $apiVersion == '2019-10' ? '2019-07' : '2019-04';
+        $mock = new MockHandler();
+        $mock->append(new Response(200, [], '{"count": 2}'));
+        $mock->append(new Response(200, [], '{"products": [{"id": 1, "title": "Product 1"}, {"id": 2, "title": "Product 2"}]}'));
+        $handler = HandlerStack::create($mock);
+        $api = new API('test', 'test', [
+            'api_version' => $apiVersion,
+            'handler' => $handler,
+            'max_attempts_on_server_errors' => 1,
+            'max_attempts_on_rate_limit_errors' => 1
+        ]);
+        $products = new Collection($api, $endpoint, ['limit' => 2]);
+        $this->assertEquals('Product 1', $products[0]['title']);
+    }
+
+    /**
      * @throws API\RequestException
      * @throws GuzzleException
      */
@@ -211,33 +271,11 @@ class CollectionTest extends TestCase {
             $this->assertEquals(1000 + $key, $product['id']);
         }
         $this->assertEquals(5, $numProducts);
-    }
+    }/** @noinspection PhpUnusedParameterInspection */
+    /** @noinspection PhpUnusedParameterInspection */
 
     /**
-     * @dataProvider cursorBasedPaginationEndpoints
-     * @param $apiVersion
-     * @param $endpoint
-     * @return void [$apiVersion, $endpoint] to be used by testCursorBasedPaginationThrowsExceptionOnArrayAccess
-     * @throws API\RequestException
-     * @throws GuzzleException
-     */
-    public function testArrayAccessReadOperationsWorkInEligibleApiVersions($apiVersion, $endpoint) {
-        $mock = new MockHandler();
-        $mock->append(new Response(200, [], '{"count": 2}'));
-        $mock->append(new Response(200, [], '{"products": [{"id": 1, "title": "Product 1"}, {"id": 2, "title": "Product 2"}]}'));
-        $handler = HandlerStack::create($mock);
-        $api = new API('test', 'test', [
-            'api_version' => '2019-04',
-            'handler' => $handler,
-            'max_attempts_on_server_errors' => 1,
-            'max_attempts_on_rate_limit_errors' => 1
-        ]);
-        $products = new Collection($api, $endpoint, ['limit' => 2]);
-        $this->assertEquals('Product 1', $products[0]['title']);
-    }
-
-    /**
-     * @dataProvider cursorBasedPaginationEndpoints
+     * @dataProvider cursorBasedPaginationEndpointsThatSupportCountOperation
      * @param $apiVersion
      * @param $endpoint
      * @throws API\RequestException
@@ -258,13 +296,34 @@ class CollectionTest extends TestCase {
         $products[0];
     }
 
-    public function cursorBasedPaginationEndpoints() {
+    // TODO: REWORK
+    public function cursorBasedPaginationEndpointsThatSupportCountOperation() {
+        $output = [];
+        $data = [
+            '2019-07' => [
+                // TODO: Add more
+                'products', 'metafields', 'collects'
+            ],
+            '2019-10' => [
+                // TODO: Add more
+                'blogs', 'comments', 'customers', 'orders'
+            ]
+        ];
+        foreach ($data as $apiVersion => $endpoints) {
+            foreach ($endpoints as $endpoint) {
+                $output[] = [$apiVersion, $endpoint];
+            }
+        }
+        return $output;
+    }
+
+    public function cursorBasedPaginationEndpointsAll() {
         $output = [];
         $data = [
             '2019-07' => [
                 'article_saved_searches', 'balance_transaction_saved_searches', 'blog_saved_searches',
                 'checkout_saved_searches', 'collects', 'collection_listings',
-                'collection_listings/1234567890/product_ids', 'collections', 'collection_saved_searches',
+                'collection_listings/1234567890/product_ids', 'collection_saved_searches',
                 'comment_saved_searches', 'customer_saved_searches', 'discount_code_saved_searches',
                 'draft_order_saved_searches', 'events', 'file_saved_searches', 'gift_card_saved_searches',
                 'inventory_transfer_saved_searches', 'metafields', 'page_saved_searches', 'products', 'search',
@@ -285,6 +344,116 @@ class CollectionTest extends TestCase {
             foreach ($endpoints as $endpoint) {
                 $output[] = [$apiVersion, $endpoint];
             }
+        }
+        return $output;
+    }
+
+
+    /**
+     * @dataProvider  endpointsThatDontSupportCountOperation
+     * @throws API\RequestException
+     * @throws GuzzleException
+     */
+    public function testEndpointWithoutCountOperation() {
+        $api = new API('test', 'test', [
+            'api_version' => '2019-07'
+        ]);
+        $inventoryLevels = new Collection($api, 'inventory_levels');
+        $this->expectException(BadMethodCallException::class);
+        count($inventoryLevels);
+    }
+
+    public function endpointsThatDontSupportCountOperation() {
+        return [
+            ['inventory_levels'],
+            ['inventory_items'],
+            ['locations/1234567890/inventory_levels'],
+            ['countries'],
+            ['customers/1234567890/addresses']
+        ];
+    }
+
+    /**
+     * @dataProvider dataForTestingEndpointsPaginationThatDontSupportCountOperation
+     * @param $apiVersion
+     * @param $endpoint
+     * @param $numPages
+     * @param $itemsPerPage
+     * @param $lastPageItemsCount
+     * @throws API\RequestException
+     * @throws GuzzleException
+     */
+    public function testCursorBasedPaginationForEndpointsThatDontSupportCountOperation(
+        $apiVersion, $endpoint, $numPages, $itemsPerPage, $lastPageItemsCount
+    ) {
+        if ($numPages > 0) {
+            $data = [];
+            for ($i = 0; $i < $numPages; $i++) {
+                $pageData = [];
+                for ($j = 0; $j < $itemsPerPage; $j++) {
+                    $pageData[] = [
+                        'inventory_item_id' => 1,
+                        'location_id' => 2,
+                        'available' => 3
+                    ];
+                    if ($i == $numPages - 1 && $j == $lastPageItemsCount - 1) {
+                        break;
+                    }
+                }
+                $data[] = $pageData;
+            }
+            if ($itemsPerPage == $lastPageItemsCount) { // Next empty page
+                $data[] = [];
+            }
+        }
+        $data[] = [];
+
+        $mock = new MockHandler();
+        $handler = HandlerStack::create($mock);
+        $api = new API('test', 'test', [
+            'api_version' => $apiVersion,
+            'handler' => $handler
+        ]);
+
+        foreach ($data as $page => $items) {
+            $headers = [];
+            $links = [];
+            if ($page > 0) {
+                $links[] = '<https://test.myshopify.com/admin/api/' . $endpoint . '/' . $endpoint . '.json?limit=' . $itemsPerPage . '&page_info=' . $this->rndStr() . '>; rel="previous"';
+            }
+            if ($page < ($numPages - 1)) {
+                $links[] = '<https:$$//test.myshopify.com/admin/api/' . $endpoint . '/' . $endpoint . '.json?limit=' . $itemsPerPage . '&page_info=' . $this->rndStr() . '>; rel="next"';
+            }
+            if (count($links) > 0) {
+                $headers['Link'] = implode(',', $links);
+            }
+            $itemsJson = json_encode([$endpoint => $items]);
+            $mock->append(new Response(200, $headers, $itemsJson));
+        }
+
+        $items = new Collection($api, 'inventory_levels', ['limit' => $itemsPerPage]);
+        $itemCount = 0;
+        foreach ($items as $index => $item) {
+            $this->assertEquals($itemCount, $index);
+            $itemCount++;
+        }
+        if ($numPages > 0) {
+            $this->assertEquals($numPages * $itemsPerPage - $itemsPerPage + $lastPageItemsCount, $itemCount);
+        } else {
+            $this->assertEquals(0, $itemCount);
+        }
+    }
+
+    public function dataForTestingEndpointsPaginationThatDontSupportCountOperation() {
+        $output = [];
+        $apiVersions = ['2019-04', '2019-07'];
+        foreach ($apiVersions as $apiVersion) {
+            // ['api_version', 'endpoint', 'num_pages', 'items_per_page', 'last_page_items']
+            $output[] = [$apiVersion, 'inventory_levels', 3, 2, 2];
+            $output[] = [$apiVersion, 'inventory_levels', 3, 2, 1];
+            $output[] = [$apiVersion, 'inventory_levels', 1, 2, 2];
+            $output[] = [$apiVersion, 'inventory_levels', 1, 2, 1];
+            $output[] = [$apiVersion, 'inventory_levels', 0, 2, 0];
         }
         return $output;
     }
@@ -316,10 +485,10 @@ class CollectionTest extends TestCase {
             if ($cursorBasedPagination) {
                 $links = [];
                 if ($page > 0) {
-                    $links[] = '<https://hilditchandkey.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="previous"';
+                    $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="previous"';
                 }
                 if ($page < ($numPages - 1)) {
-                    $links[] = '<https://hilditchandkey.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="next"';
+                    $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="next"';
                 }
                 if (count($links) > 0) {
                     $headers['Link'] = implode(',', $links);
