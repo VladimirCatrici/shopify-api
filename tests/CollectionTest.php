@@ -4,7 +4,6 @@ namespace ShopifyAPI\Tests;
 use BadMethodCallException;
 use VladimirCatrici\Shopify\API;
 use VladimirCatrici\Shopify\Collection;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
@@ -70,7 +69,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testCount() {
         self::$mock->append(new Response(200, ['X-Shopify-API-Version' => '2019-04'], '{"count": 1001}'));
@@ -81,7 +79,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testIteration() {
         $this->mockCollection(2, 10);
@@ -97,7 +94,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testIterationWithException() {
         // Preparing data
@@ -130,7 +126,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testArrayAccessInterfaceOffsetGet() {
         $this->mockCollection(2, 10);
@@ -198,7 +193,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testArrayAccessOffsetExistsThrowsExceptionForCollectionsBasedOnCursorPagination() {
         $mock = new MockHandler();
@@ -221,7 +215,6 @@ class CollectionTest extends TestCase {
      * @param $endpoint
      * @return void [$apiVersion, $endpoint] to be used by testCursorBasedPaginationThrowsExceptionOnArrayAccess
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testArrayAccessReadOperationsWorkInEligibleApiVersions($apiVersion, $endpoint) {
         $apiVersion = $apiVersion == '2019-10' ? '2019-07' : '2019-04';
@@ -241,7 +234,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testCursorBasedPagination() {
         self::$api->setVersion('2019-07');
@@ -258,7 +250,6 @@ class CollectionTest extends TestCase {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testCursorBasedPaginationWithoutPages() {
         self::$api->setVersion('2019-07');
@@ -279,7 +270,6 @@ class CollectionTest extends TestCase {
      * @param $apiVersion
      * @param $endpoint
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testCursorBasedPaginationThrowsExceptionOnArrayAccess($apiVersion, $endpoint) {
         $mock = new MockHandler();
@@ -352,7 +342,6 @@ class CollectionTest extends TestCase {
     /**
      * @dataProvider  endpointsThatDontSupportCountOperation
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testEndpointWithoutCountOperation() {
         $api = new API('test', 'test', [
@@ -381,7 +370,6 @@ class CollectionTest extends TestCase {
      * @param $itemsPerPage
      * @param $lastPageItemsCount
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function testCursorBasedPaginationForEndpointsThatDontSupportCountOperation(
         $apiVersion, $endpoint, $numPages, $itemsPerPage, $lastPageItemsCount

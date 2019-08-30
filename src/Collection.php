@@ -5,7 +5,6 @@ use ArrayAccess;
 use BadMethodCallException;
 use Countable;
 use Exception;
-use GuzzleHttp\Exception\GuzzleException;
 use Iterator;
 use LogicException;
 
@@ -209,7 +208,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
      * @param $endpoint
      * @param array $options
      * @throws API\RequestException
-     * @throws GuzzleException
      * @throws Exception
      */
     public function __construct(API $shopify, $endpoint, $options = []) {
@@ -256,7 +254,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function next() {
         $this->partIndex++;
@@ -287,7 +284,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
 
     /**
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function rewind() {
         $this->page = 1;
@@ -316,7 +312,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
      * @param mixed $offset
      * @return mixed|null
      * @throws API\RequestException
-     * @throws GuzzleException
      */
     public function offsetGet($offset) {
         if ($this->isCursorBasedPagination) {
@@ -353,7 +348,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
 
     /**
      * Fetches Shopify items based on current parameters like page, limit and options specified on object creation
-     * @throws GuzzleException
      * @throws API\RequestException
      */
     private function fetch() {

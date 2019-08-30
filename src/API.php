@@ -5,7 +5,8 @@ use DateTime;
 use DateTimeZone;
 use VladimirCatrici\Shopify\API\RequestException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use /** @noinspection PhpUndefinedClassInspection */
+    GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
@@ -97,7 +98,6 @@ class API {
      * @param $endpoint
      * @param array $query
      * @return mixed|StreamInterface
-     * @throws GuzzleException
      * @throws RequestException
      */
     public function get($endpoint, $query = []) {
@@ -108,7 +108,6 @@ class API {
      * @param $endpoint
      * @param array $data
      * @return mixed|StreamInterface
-     * @throws GuzzleException
      * @throws RequestException
      */
     public function post($endpoint, $data = []) {
@@ -119,7 +118,6 @@ class API {
      * @param $endpoint
      * @param array $data
      * @return mixed|StreamInterface
-     * @throws GuzzleException
      * @throws RequestException
      */
     public function put($endpoint, $data = []) {
@@ -129,7 +127,6 @@ class API {
     /**
      * @param $endpoint
      * @return mixed|StreamInterface
-     * @throws GuzzleException
      * @throws RequestException
      */
     public function delete($endpoint) {
@@ -178,7 +175,7 @@ class API {
                 } else {
                     break;
                 }
-            } catch (GuzzleException $e) {
+            } /** @noinspection PhpUndefinedClassInspection */ catch (GuzzleException $e) {
                 throw new RequestException($this->client, $e);
             }
         }
