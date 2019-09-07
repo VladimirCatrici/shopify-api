@@ -3,10 +3,9 @@ namespace VladimirCatrici\Shopify;
 
 use DateTime;
 use DateTimeZone;
+use Exception;
 use VladimirCatrici\Shopify\API\RequestException;
 use GuzzleHttp\Client;
-use /** @noinspection PhpUndefinedClassInspection */
-    GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
@@ -131,7 +130,8 @@ class API {
      */
     public function delete($endpoint) {
         return $this->request('delete', $endpoint);
-    }
+    }/** @noinspection PhpUndefinedClassInspection */
+    /** @noinspection PhpDocMissingThrowsInspection */
 
     /**
      * @param $method
@@ -157,6 +157,7 @@ class API {
                         'json' => $data
                     ];
                 }
+                /** @noinspection PhpUnhandledExceptionInspection */
                 $response = $this->client->request($method, $fullApiRequestURL, $options);
                 break;
             } catch (\GuzzleHttp\Exception\RequestException $e) {
@@ -175,8 +176,6 @@ class API {
                 } else {
                     break;
                 }
-            } /** @noinspection PhpUndefinedClassInspection */ catch (GuzzleException $e) {
-                throw new RequestException($this->client, $e);
             }
         }
 
@@ -276,6 +275,10 @@ class API {
         $this->setOption('api_version', $version);
     }
 
+    /**
+     * @return string
+     * @throws Exception
+     */
     public function getVersion() {
         $version = $this->getOption('api_version');
         if (empty($version)) {
@@ -289,8 +292,19 @@ class API {
         return $this->getOption('api_version');
     }
 
-    private function getOldestSupportedVersion() {
-        $dt = new DateTime();
+    /**
+     * @param mixed $date DateTime string (YYYY-MM[...]) or DateTime object
+     * @return string
+     * @throws Exception
+     */
+    public function getOldestSupportedVersion($date = null) {
+        if (is_string($date)) {
+            $dt = new DateTime($date);
+        } elseif ($date instanceof DateTime) {
+            $dt = $date;
+        } else {
+            $dt = new DateTime();
+        }
         $tz = new DateTimeZone('UTC');
         $dt->setTimezone($tz);
         $currentYearMonth = $dt->format('Y-m');
@@ -307,7 +321,11 @@ class API {
             '07' => '10', '08' => '10', '09' => '10',
             '10' => '01', '11' => '01', '12' => '01'
         ];
+        $returnMonth = $monthMapping[$currentMonth];
 
-        return (--$currentYear . '-' . $monthMapping[$currentMonth]);
+        // If the latest supported version has been released in April or later,
+        // then current date is Jan-Sep and that means that it was released in the previous year.
+        // Still the same year for any date withing Oct-Dec range.
+        return $currentYear - ($returnMonth >= '04' ? 1 : 0) . '-' . $returnMonth;
     }
 }

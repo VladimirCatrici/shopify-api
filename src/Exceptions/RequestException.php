@@ -42,23 +42,19 @@ class RequestException extends Exception {
      * @return string
      */
     public function getDetailsJson() {
+        $output = [
+            'msg' => parent::getPrevious()->getMessage(),
+            'request' => $this->client->getConfig()
+        ];
         if (!empty($this->response)) {
             $body = $this->response->getBody();
             $body->seek(0);
-            return json_encode([
-                'msg' => parent::getPrevious()->getMessage(),
-                'request' => $this->client->getConfig(),
-                'response' => [
-                    'code' => $this->response->getStatusCode(),
-                    'body' => $body->getContents(),
-                    'headers' => $this->response->getHeaders()
-                ]
-            ]);
-        } else {
-            return json_encode([
-                'msg' => parent::getPrevious()->getMessage(),
-                'request' => $this->client->getConfig()
-            ]);
+            $output['response'] = [
+                'code' => $this->response->getStatusCode(),
+                'body' => $body->getContents(),
+                'headers' => $this->response->getHeaders()
+            ];
         }
+        return json_encode($output);
     }
 }

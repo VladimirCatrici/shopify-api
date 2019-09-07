@@ -446,6 +446,12 @@ class CollectionTest extends TestCase {
         return $output;
     }
 
+    public function testThrowingExceptionForEndpointsThatDontSupportCollection() {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageRegExp('/endpoint is not supported/');
+        new Collection(self::$api, 'countries');
+    }
+
     /**
      * Generates and adds to the Mock object list of responses for the Collection object.
      * @param $numPages

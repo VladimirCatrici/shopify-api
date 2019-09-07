@@ -2,6 +2,7 @@
 
 namespace ShopifyAPI\Tests;
 
+use DateTime;
 use VladimirCatrici\Shopify\API;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\MockHandler;
@@ -281,6 +282,40 @@ class ShopifyApiTest extends TestCase {
         $api = new API('test', 'test');
         $api->setOption('api_version', '2019-10');
         $this->assertEquals('2019-10', $api->getVersion());
+    }
+
+    /**
+     * @dataProvider oldestSupportedVersionDataProvider
+     * @param $date
+     * @param $apiVersionExpected
+     * @throws \Exception
+     */
+    public function testChoosingCorrectOldestSupportedApiVersion($date, $apiVersionExpected) {
+        $this->assertEquals($apiVersionExpected, self::$api->getOldestSupportedVersion($date));
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function oldestSupportedVersionDataProvider() {
+        return [
+            ['2019-08', '2019-04'],
+            ['2019-09-01', '2019-04'],
+            ['2019-10-26 00:00:00', '2019-04'],
+            ['2019-11-15 23:59:59', '2019-04'],
+            ['2019-08', '2019-04'],
+            ['2019-08', '2019-04'],
+            ['2019-08', '2019-04'],
+            [new DateTime('2020-01-01'), '2019-04'],
+            ['2020-03-31 23:59:59', '2019-04'],
+            ['2020-04-01 00:00:00', '2019-07'],
+            ['2020-04', '2019-07'],
+            ['2020-06', '2019-07'],
+            ['2020-07', '2019-10'],
+            ['2020-09', '2019-10'],
+            ['2020-10', '2020-01']
+        ];
     }
 
     /**

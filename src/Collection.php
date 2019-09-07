@@ -90,6 +90,7 @@ class Collection implements Iterator, Countable, ArrayAccess {
         'application_charges',
         'recurring_application_charges',
         'customers',
+        'customers\/\d+\/addresses',
         'customer_saved_searches',
         'price_rules',
         'events',
@@ -97,6 +98,7 @@ class Collection implements Iterator, Countable, ArrayAccess {
         'metafields ',
         'articles',
         'blogs',
+        'blogs\/\d+\/articles',
         'comments',
         'pages',
         'redirects',
@@ -116,30 +118,9 @@ class Collection implements Iterator, Countable, ArrayAccess {
     ];
 
     private $pageBasedPaginationEndpoints = [
-        'reports',
-        'customers',
-        'customers\/\d+\/addresses',
-        'price_rules',
-        'webhooks',
         'inventory_items',
         'inventory_levels',
         'marketing_events',
-        'blogs\/\d+\/articles',
-        'blogs',
-        'comments',
-        'pages',
-        'redirects',
-        'script_tags',
-        'checkouts',
-        'orders',
-        'orders\/\d+\/refunds',
-        'custom_collections',
-        'products',
-        'page',
-        'products\/\d+\/variants',
-        'variants',
-        'smart_collections',
-        'metafields'
     ];
 
     private $cursorBasedPaginationEndpoints = [
@@ -213,6 +194,14 @@ class Collection implements Iterator, Countable, ArrayAccess {
     public function __construct(API $shopify, $endpoint, $options = []) {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
+
+        $this->detectPaginationType();
+        if (empty($this->paginationType)) {
+            throw new Exception(sprintf('The `%s` endpoint is not supported and cannot be used as a collection object, 
+                pagination type is not specified',
+                $endpoint));
+        }
+
         if (array_key_exists('limit', $options)) {
             $this->limit = $options['limit'];
             unset($options['limit']);
@@ -233,11 +222,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
         if ($countEndpointAvailable) {
             $this->count = $this->api->get($this->endpoint . '/count', $this->options);
             $this->numPages = ceil($this->count / $this->limit);
-        }
-
-        $this->detectPaginationType();
-        if (empty($this->paginationType)) {
-            throw new Exception('This endpoint is not supported');
         }
     }
 
@@ -269,13 +253,9 @@ class Collection implements Iterator, Countable, ArrayAccess {
                     $this->fetch();
                     break;
                 default: // PaginationType::PAGE
-                    if (!is_null($this->numPages) && $this->page < $this->numPages) {
-                        $this->fetch();
-                    } elseif (is_null($this->numPages)) {
-                        $this->fetch();
-                        if (count($this->items) == 0) {
-                            $this->numPages = $this->page;
-                        }
+                    $this->fetch();
+                    if (count($this->items) == 0) {
+                        $this->numPages = $this->page;
                     }
             }
         }
@@ -410,7 +390,10 @@ class Collection implements Iterator, Countable, ArrayAccess {
         return $offset < $this->limit ? $offset : $offset % $this->limit;
     }
 
-    // TODO: set cursor based pagination after the first request to get items. If it returns Link header, than it's cursor based pagination
+    /**
+     * @throws Exception
+     * TODO: set cursor based pagination after the first request to get items. If it returns Link header, than it's cursor based pagination
+     */
     private function detectPaginationType() {
         $apiVersion = $this->api->getVersion();
 
