@@ -1,14 +1,12 @@
 <?php
 namespace VladimirCatrici\Shopify;
 
-use ArrayAccess;
 use BadMethodCallException;
 use Countable;
 use Exception;
 use Iterator;
-use LogicException;
 
-class Collection implements Iterator, Countable, ArrayAccess {
+class Collection implements Iterator, Countable {
 
     private $endpoint;
 
@@ -283,47 +281,6 @@ class Collection implements Iterator, Countable, ArrayAccess {
             throw new BadMethodCallException('This endpoint does not support "count" operation');
         }
        return $this->count;
-    }
-
-    /**
-     * @deprecated Cannot be used if Shopify API version switched to cursor-based pagination for this endpoint.
-     * Cursor-based pagination released in 2019-07 for some endpoints, and more endpoints to be added in 2019-10.
-     * More details: https://help.shopify.com/en/api/guides/paginated-rest-results
-     * @param mixed $offset
-     * @return mixed|null
-     * @throws API\RequestException
-     */
-    public function offsetGet($offset) {
-        if ($this->isCursorBasedPagination) {
-            throw new LogicException('ArrayAccess cannot be used for endpoints switched to cursor-based pagination');
-        }
-        trigger_error('ArrayAccess interface read operations are deprecated for \VladimirCatrici\Shopify\Collection objects', E_USER_DEPRECATED);
-        if (!is_int($offset) || $offset < 0 || $offset >= $this->count) {
-            return null;
-        }
-        $offsetPage = $this->offset2page($offset);
-        if ($offsetPage != $this->page || !$this->fetched) {
-            $this->page = $offsetPage;
-            $this->fetch();
-        }
-        $this->partIndex = $this->offset2partIndex($offset);
-        return isset($this->items[$this->partIndex]) ? $this->items[$this->partIndex] : null;
-    }
-
-    public function offsetExists($offset) {
-        if ($this->isCursorBasedPagination) {
-            throw new LogicException('ArrayAccess cannot be used for endpoints switched to cursor-based pagination');
-        }
-        trigger_error('ArrayAccess interface read operations are deprecated for \VladimirCatrici\Shopify\Collection objects', E_USER_DEPRECATED);
-        return is_int($offset) && $offset >= 0 && $offset < $this->count;
-    }
-
-    public function offsetSet($offset, $value) {
-        throw new LogicException('Shopify collection is read-only. You cannot add new items or change existing');
-    }
-
-    public function offsetUnset($offset) {
-        throw new LogicException('Shopify collection is read-only. Items deletion prohibited');
     }
 
     /**
