@@ -4,7 +4,7 @@ namespace VladimirCatrici\Shopify;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use VladimirCatrici\Shopify\API\RequestException;
+use VladimirCatrici\Shopify\Exceptions\RequestException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
