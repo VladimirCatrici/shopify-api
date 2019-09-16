@@ -1,11 +1,10 @@
 <?php
 
-namespace VladimirCatrici\Shopify\API;
+namespace VladimirCatrici\Shopify\Exceptions;
 
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Exception\GuzzleException;
 
 class RequestException extends Exception {
     /**
@@ -21,7 +20,7 @@ class RequestException extends Exception {
     /**
      * RequestException constructor.
      * @param Client $client
-     * @param GuzzleException|\GuzzleHttp\Exception\RequestException $previous
+     * @param \GuzzleHttp\Exception\RequestException $previous
      */
     public function __construct(Client $client, $previous = null) {
         $this->client = $client;

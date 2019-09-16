@@ -1,7 +1,7 @@
 {
     "name": "vladimircatrici/shopify-api",
-    "description": "Library to operate with Shopify data via API",
-    "keywords": ["composer", "package", "shopify", "api"],
+    "description": "Library to operate with Shopify data via REST API",
+    "keywords": ["composer", "package", "shopify", "rest", "api"],
     "license": "proprietary",
     "authors": [
         {
