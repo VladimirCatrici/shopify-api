@@ -3,10 +3,10 @@
 
 namespace ShopifyAPI\Test;
 
-use GuzzleHttp\Exception\GuzzleException;
 use VladimirCatrici\Shopify\API;
 use PHPUnit\Framework\TestCase;
 use VladimirCatrici\Shopify\Collection;
+use VladimirCatrici\Shopify\Exception\RequestException;
 
 class CollectionOnlineTest extends TestCase {
     /**
@@ -23,6 +23,9 @@ class CollectionOnlineTest extends TestCase {
         ]);
     }
 
+    /**
+     * @throws RequestException
+     */
     public static function tearDownAfterClass() {
         if (!empty(self::$listOfCreatedProducts)) {
             foreach (self::$listOfCreatedProducts as $id) {
@@ -33,7 +36,7 @@ class CollectionOnlineTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testIteration() {
         $count = self::$api->get('products/count');
@@ -81,7 +84,7 @@ class CollectionOnlineTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testCount() {
         $metafieldsToAdd = [
@@ -123,7 +126,7 @@ class CollectionOnlineTest extends TestCase {
      * making requests to `inventory_levels` endpoint for API versions before 2019-10.
      * // TODO: Remove this and all depended test after 2020-07
      * @return array Shopify product
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testCreateProduct() {
         /*
@@ -180,10 +183,10 @@ class CollectionOnlineTest extends TestCase {
      * @depends testCreateProduct
      * @param array $product
      * @return array Shopify product that was passed to input. It's required to test other pagination cases
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testPageBasedPaginationLimitMaximum($product) {
-        $this->testPageBasedPagination($product, 5, 250);
+        $this->doTestPageBasedPagination($product, 5, 250);
         return $product;
     }
 
@@ -192,10 +195,10 @@ class CollectionOnlineTest extends TestCase {
      * @depends testPageBasedPaginationLimitMaximum
      * @param array $product
      * @return array Shopify product that was passed to input. It's required to test other pagination cases
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testPageBasedPaginationLimitSame($product) {
-        $this->testPageBasedPagination($product, 5, 5);
+        $this->doTestPageBasedPagination($product, 5, 5);
         return $product;
     }
 
@@ -204,10 +207,10 @@ class CollectionOnlineTest extends TestCase {
      * @depends testPageBasedPaginationLimitSame
      * @param array $product
      * @return array Shopify product that was passed to input. It's required to test other pagination cases
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testPageBasedPaginationLimitHalf($product) {
-        $this->testPageBasedPagination($product, 10, 5);
+        $this->doTestPageBasedPagination($product, 10, 5);
         return $product;
     }
 
@@ -216,10 +219,10 @@ class CollectionOnlineTest extends TestCase {
      * @depends testPageBasedPaginationLimitHalf
      * @param array $product
      * @return array Shopify product that was passed to input. It's required to test other pagination cases
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testPageBasedPaginationLimit3($product) {
-        $this->testPageBasedPagination($product, 4, 3);
+        $this->doTestPageBasedPagination($product, 4, 3);
         return $product;
     }
 
@@ -228,17 +231,17 @@ class CollectionOnlineTest extends TestCase {
      * @depends testPageBasedPaginationLimit3
      * @param array $product
      * @return array Shopify product that was passed to input. It's required to test other pagination cases
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testPageBasedPaginationLimit1($product) {
-        $this->testPageBasedPagination($product, 3, 1);
+        $this->doTestPageBasedPagination($product, 3, 1);
         return $product;
     }
 
     /**
      * @depends testPageBasedPaginationLimit1
      * @param array $product Shopify product created by testCreateProduct
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testDeleteProduct($product) {
         self::$api->delete('products/' . $product['id']);
@@ -251,9 +254,9 @@ class CollectionOnlineTest extends TestCase {
      * @param int $limit Maximum number of inventory items to use. Will be passed to endpoint as a filter parameter
      * @param int $itemPerPage Limit that will be passed as Collection option. It specifies the number of items per page
      * @return array Shopify product that was passed to input
-     * @throws API\RequestException
+     * @throws RequestException
      */
-    private function testPageBasedPagination($product, $limit, $itemPerPage) {
+    private function doTestPageBasedPagination($product, $limit, $itemPerPage) {
         $inventoryItemIds = array_column($product['variants'], 'inventory_item_id');
         $inventoryItemIds = array_slice($inventoryItemIds, 0, $limit);
         // We should pass either a list of inventory item IDs or location IDs to inventory_levels endpoint.
@@ -262,6 +265,7 @@ class CollectionOnlineTest extends TestCase {
             'limit' => $itemPerPage
         ]);
         $numItemsInCollection = 0;
+        /** @noinspection PhpUnusedLocalVariableInspection */
         foreach ($inventoryLevelsCollection as $il) {
             $numItemsInCollection++;
         }

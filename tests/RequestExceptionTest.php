@@ -2,12 +2,12 @@
 namespace ShopifyAPI\Tests;
 
 use VladimirCatrici\Shopify\API;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\ClockMock;
+use VladimirCatrici\Shopify\Exception\RequestException;
 
 class RequestExceptionTest extends TestCase {
     /**
@@ -30,26 +30,20 @@ class RequestExceptionTest extends TestCase {
         ]);
     }
 
-    /**
-     * @throws GuzzleException
-     */
     public function testGetResponse() {
         self::$mock->append(new Response(500));
         try {
             self::$api->get('products');
-        } catch (API\RequestException $e) {
+        } catch (RequestException $e) {
             $this->assertInstanceOf(Response::class, $e->getResponse());
         }
     }
 
-    /**
-     * @throws GuzzleException
-     */
     public function testGetDetailsJson() {
         self::$mock->append(new Response(500, ['X-Test-Header' => '12345'], 'Test Body'));
         try {
             self::$api->get('products');
-        } catch (API\RequestException $e) {
+        } catch (RequestException $e) {
             $detailsJson = $e->getDetailsJson();
             $this->assertJson($detailsJson);
             $detailsArr = json_decode($detailsJson, true, 512);

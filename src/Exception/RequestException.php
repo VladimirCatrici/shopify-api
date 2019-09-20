@@ -1,6 +1,6 @@
 <?php
 
-namespace VladimirCatrici\Shopify\Exceptions;
+namespace VladimirCatrici\Shopify\Exception;
 
 use Exception;
 use GuzzleHttp\Client;

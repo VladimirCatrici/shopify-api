@@ -2,6 +2,7 @@
 namespace ShopifyAPI\Tests;
 
 use BadMethodCallException;
+use Exception;
 use VladimirCatrici\Shopify\API;
 use VladimirCatrici\Shopify\Collection;
 use GuzzleHttp\Handler\MockHandler;
@@ -9,6 +10,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use VladimirCatrici\Shopify\Exception\RequestException;
 
 class CollectionTest extends TestCase {
 
@@ -56,7 +58,7 @@ class CollectionTest extends TestCase {
         'events'
     ];
 
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass() : void {
         self::$api = new API('test', 'test');
         self::$mock = new MockHandler();
         $handler = HandlerStack::create(self::$mock);
@@ -68,7 +70,7 @@ class CollectionTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws Exception
      */
     public function testCount() {
         self::$mock->append(new Response(200, ['X-Shopify-API-Version' => '2019-04'], '{"count": 1001}'));
@@ -78,7 +80,25 @@ class CollectionTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
+     */
+    public function testCountThrowsExceptionIfOperationsIsNotSupportedByEndpoint() {
+        $collection = new Collection(self::$api, 'shopify_payments/disputes');
+        $this->expectException(BadMethodCallException::class);
+        count($collection);
+    }
+
+    /**
+     * @throws RequestException
+     */
+    public function testCountMethodThrowsExceptionIfOperationsIsNotSupportedByEndpoint() {
+        $collection = new Collection(self::$api, 'shopify_payments/disputes');
+        $this->expectException(BadMethodCallException::class);
+        $collection->count();
+    }
+
+    /**
+     * @throws Exception
      */
     public function testIteration() {
         $this->mockCollection(2, 10);
@@ -93,7 +113,7 @@ class CollectionTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testIterationWithException() {
         // Preparing data
@@ -119,125 +139,17 @@ class CollectionTest extends TestCase {
             $this->assertEquals($i + 1000, $product['id']);
             $this->assertEquals('Test product ' . ($i + 1), $product['title']);
             if ($i == 1) {
-                $this->expectException(API\RequestException::class);
+                $this->expectException(RequestException::class);
             }
         }
     }
 
     /**
-     * @throws API\RequestException
-     */
-    public function testArrayAccessInterfaceOffsetGet() {
-        $this->mockCollection(2, 10);
-        $products = new Collection(self::$api, 'products', ['limit' => 10]);
-        $this->assertEquals(1000, $products[0]['id']);
-        $this->assertEquals(1005, $products[5]['id']);
-        $this->assertEquals(1009, $products[9]['id']);
-        $this->assertEquals(1010, $products[10]['id']);
-        $this->assertEquals(1019, $products[19]['id']);
-        $this->assertEquals(1019, $products['19']['id']);
-        $this->assertNull($products[20]['id']);
-        $this->assertNull($products['test']);
-        $this->assertNull($products['19.1']);
-        $this->assertNull($products[-1]);
-        $this->mockCollection(2, 10, false);
-        $this->assertEquals(1001, $products[1]['id']);
-        $this->assertEquals(1011, $products[11]['id']);
-
-        return $products;
-    }
-
-    /**
-     * @depends testArrayAccessInterfaceOffsetGet
-     * @param $products
-     */
-    public function testArrayAccessOffsetPush($products) {
-        $this->expectException(LogicException::class);
-        $products[] = 1;
-    }
-
-    /**
-     * @depends testArrayAccessInterfaceOffsetGet
-     * @param $products
-     */
-    public function testArrayAccessOffsetSet($products) {
-        $this->expectException(LogicException::class);
-        $products[0] = 1;
-    }
-
-    /**
-     * @depends testArrayAccessInterfaceOffsetGet
-     * @param $products
-     */
-    public function testArrayAccessOffsetSet2($products) {
-        $this->expectException(LogicException::class);
-        $products[] = 1;
-    }
-
-    /**
-     * @depends testArrayAccessInterfaceOffsetGet
-     * @param Collection $products
-     */
-    public function testArrayAccessUnset($products) {
-        $this->expectException(LogicException::class);
-        unset($products[0]);
-    }
-
-    /**
-     * @depends testArrayAccessInterfaceOffsetGet
-     * @param Collection $products
-     */
-    public function testArrayAccessOffsetExists($products) {
-        $this->assertTrue(isset($products[0]));
-    }
-
-    /**
-     * @throws API\RequestException
-     */
-    public function testArrayAccessOffsetExistsThrowsExceptionForCollectionsBasedOnCursorPagination() {
-        $mock = new MockHandler();
-        $mock->append(new Response(200, [], '{"count": 2}'));
-        $mock->append(new Response(200, [], '{"products": [{"id": 1, "title": "Product 1"}, {"id": 2, "title": "Product 2"}]}'));
-        $handler = HandlerStack::create($mock);
-        $api = new API('test', 'test', [
-            'api_version' => '2019-07',
-            'handler' => $handler
-        ]);
-        $products = new Collection($api, 'products');
-        $this->expectException(LogicException::class);
-        /** @noinspection PhpExpressionResultUnusedInspection */
-        isset($products[0]);
-    }
-
-    /**
-     * @dataProvider cursorBasedPaginationEndpointsThatSupportCountOperation
-     * @param $apiVersion
-     * @param $endpoint
-     * @return void [$apiVersion, $endpoint] to be used by testCursorBasedPaginationThrowsExceptionOnArrayAccess
-     * @throws API\RequestException
-     */
-    public function testArrayAccessReadOperationsWorkInEligibleApiVersions($apiVersion, $endpoint) {
-        $apiVersion = $apiVersion == '2019-10' ? '2019-07' : '2019-04';
-        $mock = new MockHandler();
-        $mock->append(new Response(200, [], '{"count": 2}'));
-        $mock->append(new Response(200, [], '{"products": [{"id": 1, "title": "Product 1"}, {"id": 2, "title": "Product 2"}]}'));
-        $handler = HandlerStack::create($mock);
-        $api = new API('test', 'test', [
-            'api_version' => $apiVersion,
-            'handler' => $handler,
-            'max_attempts_on_server_errors' => 1,
-            'max_attempts_on_rate_limit_errors' => 1
-        ]);
-        $products = new Collection($api, $endpoint, ['limit' => 2]);
-        $this->assertEquals('Product 1', $products[0]['title']);
-    }
-
-    /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testCursorBasedPagination() {
         self::$api->setVersion('2019-07');
-        $this->mockCollection(3, 20, true, true);
+        $this->mockCollection(3, 20, true);
         $products = new Collection(self::$api, 'products', ['limit' => 20]);
         $this->assertEquals(60, count($products));
         $numProducts = 0;
@@ -249,11 +161,11 @@ class CollectionTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testCursorBasedPaginationWithoutPages() {
         self::$api->setVersion('2019-07');
-        $this->mockCollection(1, 5, true, true);
+        $this->mockCollection(1, 5, true);
         $products = new Collection(self::$api, 'products', ['limit' => 5]);
         $this->assertEquals(5, count($products));
         $numProducts = 0;
@@ -264,27 +176,6 @@ class CollectionTest extends TestCase {
         $this->assertEquals(5, $numProducts);
     }/** @noinspection PhpUnusedParameterInspection */
     /** @noinspection PhpUnusedParameterInspection */
-
-    /**
-     * @dataProvider cursorBasedPaginationEndpointsThatSupportCountOperation
-     * @param $apiVersion
-     * @param $endpoint
-     * @throws API\RequestException
-     */
-    public function testCursorBasedPaginationThrowsExceptionOnArrayAccess($apiVersion, $endpoint) {
-        $mock = new MockHandler();
-        $mock->append(new Response(200, [], '{"count": 100}'));
-        $handler = HandlerStack::create($mock);
-        $api = new API('test', 'test', [
-            'api_version' => $apiVersion,
-            'handler' => $handler,
-            'max_attempts_on_server_errors' => 1,
-            'max_attempts_on_rate_limit_errors' => 1
-        ]);
-        $products = new Collection($api, $endpoint, ['limit' => 2]);
-        $this->expectException(LogicException::class);
-        $products[0];
-    }
 
     // TODO: REWORK
     public function cursorBasedPaginationEndpointsThatSupportCountOperation() {
@@ -338,10 +229,9 @@ class CollectionTest extends TestCase {
         return $output;
     }
 
-
     /**
      * @dataProvider  endpointsThatDontSupportCountOperation
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testEndpointWithoutCountOperation() {
         $api = new API('test', 'test', [
@@ -369,7 +259,7 @@ class CollectionTest extends TestCase {
      * @param $numPages
      * @param $itemsPerPage
      * @param $lastPageItemsCount
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function testCursorBasedPaginationForEndpointsThatDontSupportCountOperation(
         $apiVersion, $endpoint, $numPages, $itemsPerPage, $lastPageItemsCount
@@ -446,8 +336,11 @@ class CollectionTest extends TestCase {
         return $output;
     }
 
+    /**
+     * @throws RequestException
+     */
     public function testThrowingExceptionForEndpointsThatDontSupportCollection() {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessageRegExp('/endpoint is not supported/');
         new Collection(self::$api, 'countries');
     }
@@ -456,14 +349,10 @@ class CollectionTest extends TestCase {
      * Generates and adds to the Mock object list of responses for the Collection object.
      * @param $numPages
      * @param $limit
-     * @param bool $includeCountResponse Whether the count response should be added as the first response. BY default
-     * it's set to TRUE, might be useful when you need to set it to FALSE, e.g. testArrayAccessInterface();
      * @param bool $cursorBasedPagination
      */
-    private function mockCollection($numPages, $limit, $includeCountResponse = true, $cursorBasedPagination = false) {
-        if ($includeCountResponse) {
-            self::$mock->append(new Response(200, [], '{"count": ' . $numPages * $limit . '}'));
-        }
+    private function mockCollection($numPages, $limit, $cursorBasedPagination = false) {
+        self::$mock->append(new Response(200, [], '{"count": ' . $numPages * $limit . '}'));
         $id = 1000;
         for ($page = 0; $page < $numPages; $page++) {
             $pageProducts = [];

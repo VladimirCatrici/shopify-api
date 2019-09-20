@@ -3,14 +3,15 @@
 namespace ShopifyAPI\Tests;
 
 use DateTime;
+use Exception;
 use VladimirCatrici\Shopify\API;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\ClockMock;
+use VladimirCatrici\Shopify\Exception\RequestException;
 
 class ShopifyApiTest extends TestCase {
     /**
@@ -41,8 +42,7 @@ class ShopifyApiTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testGet() {
         self::$mock->append(
@@ -58,13 +58,12 @@ class ShopifyApiTest extends TestCase {
         $this->assertEquals($products[1]['title'], 'Product 2');
 
         // Check exception
-        $this->expectException(API\RequestException::class);
+        $this->expectException(RequestException::class);
         self::$api->get('products');
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testPost() {
         self::$mock->append(
@@ -81,8 +80,7 @@ class ShopifyApiTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testPut() {
         self::$mock->append(
@@ -100,8 +98,7 @@ class ShopifyApiTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testDelete() {
         self::$mock->append(new Response(200));
@@ -130,8 +127,7 @@ class ShopifyApiTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testAttemptsOptions() {
         self::$api->setOption('max_attempts_on_server_errors', 4);
@@ -147,8 +143,7 @@ class ShopifyApiTest extends TestCase {
 
     /**
      * @group time-sensitive
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function test429ResponseHandling() {
         self::$mock->append(
@@ -162,8 +157,7 @@ class ShopifyApiTest extends TestCase {
 
     /**
      * @group time-sensitive
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function test429RetryAfterHandling() {
         self::$mock->append(
@@ -177,8 +171,7 @@ class ShopifyApiTest extends TestCase {
 
     /**
      * @group time-sensitive
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testMaxRateLimitOption() {
         self::$mock->append(
@@ -205,8 +198,7 @@ class ShopifyApiTest extends TestCase {
 
     /**
      * @group time-sensitive
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testMaxRateLimitSleepSecOption() {
         self::$api->setOption('max_limit_rate', 0.25);
@@ -245,6 +237,7 @@ class ShopifyApiTest extends TestCase {
     /**
      * @dataProvider validApiVersion
      * @param $validApiVersion API version to be provided by the validApiVersion provider
+     * @throws Exception
      */
     public function testSettingShopifyApiVersionWithConstructor($validApiVersion) {
         $api = new API('test', 'test', [
@@ -256,6 +249,7 @@ class ShopifyApiTest extends TestCase {
     /**
      * @dataProvider  validApiVersion
      * @param $validApiVersion
+     * @throws Exception
      */
     public function testSettingShopifyApiVersionAfterInitialization($validApiVersion) {
         $apiVersion = '2019-04';
@@ -264,6 +258,9 @@ class ShopifyApiTest extends TestCase {
         $this->assertEquals($validApiVersion, $api->getVersion());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testGettingShopifyApiVersionWithoutSettingItWithConstructor() {
         $mock = new MockHandler();
         $handler = HandlerStack::create($mock);
@@ -278,6 +275,9 @@ class ShopifyApiTest extends TestCase {
         $this->assertEquals($apiVersion, $api->getOption('api_version'));
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSettingApiVersionViaSetOption() {
         $api = new API('test', 'test');
         $api->setOption('api_version', '2019-10');
@@ -288,7 +288,7 @@ class ShopifyApiTest extends TestCase {
      * @dataProvider oldestSupportedVersionDataProvider
      * @param $date
      * @param $apiVersionExpected
-     * @throws \Exception
+     * @throws Exception
      */
     public function testChoosingCorrectOldestSupportedApiVersion($date, $apiVersionExpected) {
         $this->assertEquals($apiVersionExpected, self::$api->getOldestSupportedVersion($date));
@@ -296,7 +296,7 @@ class ShopifyApiTest extends TestCase {
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function oldestSupportedVersionDataProvider() {
         return [

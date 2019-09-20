@@ -5,6 +5,7 @@ use BadMethodCallException;
 use Countable;
 use Exception;
 use Iterator;
+use VladimirCatrici\Shopify\Exception\RequestException;
 
 class Collection implements Iterator, Countable {
 
@@ -93,7 +94,6 @@ class Collection implements Iterator, Countable {
         'price_rules',
         'events',
         'webhooks',
-        'metafields ',
         'articles',
         'blogs',
         'blogs\/\d+\/articles',
@@ -186,7 +186,7 @@ class Collection implements Iterator, Countable {
      * @param API $shopify
      * @param $endpoint
      * @param array $options
-     * @throws API\RequestException
+     * @throws RequestException
      * @throws Exception
      */
     public function __construct(API $shopify, $endpoint, $options = []) {
@@ -235,7 +235,7 @@ class Collection implements Iterator, Countable {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function next() {
         $this->partIndex++;
@@ -261,7 +261,7 @@ class Collection implements Iterator, Countable {
     }
 
     /**
-     * @throws API\RequestException
+     * @throws RequestException
      */
     public function rewind() {
         $this->page = 1;
@@ -285,7 +285,7 @@ class Collection implements Iterator, Countable {
 
     /**
      * Fetches Shopify items based on current parameters like page, limit and options specified on object creation
-     * @throws API\RequestException
+     * @throws RequestException
      */
     private function fetch() {
         $options = [
@@ -335,16 +335,7 @@ class Collection implements Iterator, Countable {
             $this->nextPageInfo = null;
             return;
         }
-
         $this->nextPageInfo = $matches[1];
-    }
-
-    private function offset2page($offset) {
-        return floor($offset / $this->limit) + 1;
-    }
-
-    private function offset2partIndex($offset) {
-        return $offset < $this->limit ? $offset : $offset % $this->limit;
     }
 
     /**
@@ -356,29 +347,35 @@ class Collection implements Iterator, Countable {
 
         if ($apiVersion >= '2019-07') {
             foreach ($this->cursorBasedPaginationEndpoints as $version => $endpointsRegEx) {
-                if ($version <= $apiVersion) {
-                    foreach ($endpointsRegEx as $re) {
-                        if (preg_match('/' . $re . '/', $this->endpoint)) {
-                            $this->isCursorBasedPagination = true;
-                            $this->paginationType = PaginationType::CURSOR;
-                            return;
-                        }
+                if ($version > $apiVersion) {
+                    continue;
+                }
+                foreach ($endpointsRegEx as $re) {
+                    if (!preg_match('/' . $re . '/', $this->endpoint)) {
+                        continue;
                     }
+                    $this->isCursorBasedPagination = true;
+                    $this->paginationType = PaginationType::CURSOR;
+                    break(2);
                 }
             }
         }
 
-        foreach ($this->sinceIdSupport as $endpointRegEx) {
-            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                $this->paginationType = PaginationType::SINCE;
-                return;
+        if (empty($this->paginationType)) {
+            foreach ($this->sinceIdSupport as $endpointRegEx) {
+                if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
+                    $this->paginationType = PaginationType::SINCE;
+                    break;
+                }
             }
         }
 
-        foreach ($this->pageBasedPaginationEndpoints as $endpointRegEx) {
-            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                $this->paginationType = PaginationType::PAGE;
-                return;
+        if (empty($this->paginationType)) {
+            foreach ($this->pageBasedPaginationEndpoints as $endpointRegEx) {
+                if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
+                    $this->paginationType = PaginationType::PAGE;
+                    break;
+                }
             }
         }
     }

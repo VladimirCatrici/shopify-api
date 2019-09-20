@@ -3,10 +3,11 @@
 
 namespace ShopifyAPI\Test;
 
+use Exception;
 use VladimirCatrici\Shopify\API;
-use GuzzleHttp\Exception\GuzzleException;
 use PHPUnit\Framework\TestCase;
 use VladimirCatrici\Shopify\Collection;
+use VladimirCatrici\Shopify\Exception\RequestException;
 
 class ShopifyApiOnlineTest extends TestCase {
     /**
@@ -42,8 +43,7 @@ class ShopifyApiOnlineTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testCount() {
         $productsCount = self::$api->get('products/count');
@@ -51,8 +51,7 @@ class ShopifyApiOnlineTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testGet() {
         $products = self::$api->get('products');
@@ -62,8 +61,7 @@ class ShopifyApiOnlineTest extends TestCase {
 
     /**
      * @return int
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testPost() {
         $response = self::$api->post('products', [
@@ -91,10 +89,9 @@ class ShopifyApiOnlineTest extends TestCase {
 
     /**
      * @depends testPost
-     * @param $productId
+     * @param int $productId
      * @return int
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testPut(int $productId) {
         $newProductTitle = 'New product title';
@@ -115,26 +112,22 @@ class ShopifyApiOnlineTest extends TestCase {
     /**
      * @depends testPost
      * @param int $productId
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testDelete(int $productId) {
         self::$api->delete('products/' . $productId);
         $this->assertEquals(200, self::$api->respCode);
 
         // Check the product is actually deleted
-        $this->expectException(API\RequestException::class);
+        $this->expectException(RequestException::class);
         self::$api->get('products/' . $productId);
         $this->assertEquals(404, self::$api->respCode);
     }
 
-    /**
-     * @throws GuzzleException
-     */
     public function testNotFoundRequestException() {
         try {
             self::$api->get('products/1');
-        } catch (API\RequestException $e) {
+        } catch (RequestException $e) {
             $json = $e->getDetailsJson();
             $arr = json_decode($json, true, 512);
             $this->assertEquals(404, $arr['response']['code']);
@@ -143,8 +136,8 @@ class ShopifyApiOnlineTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
+     * @throws Exception
      */
     public function testChangingApiVersion() {
         self::$api->get('products/count');
@@ -164,8 +157,7 @@ class ShopifyApiOnlineTest extends TestCase {
     }
 
     /**
-     * @throws API\RequestException
-     * @throws GuzzleException
+     * @throws RequestException
      */
     public function testCollection() {
         // Create test products
