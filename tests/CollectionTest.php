@@ -98,18 +98,27 @@ class CollectionTest extends TestCase {
     }
 
     /**
-     * @throws Exception
+     * @dataProvider iterationEndpointsDataProvider
+     * @param $endpoint
+     * @throws RequestException
      */
-    public function testIteration() {
+    public function testIteration($endpoint) {
         $this->mockCollection(2, 10);
         self::$mock->append(new Response(200, [], '{}'));
-        $products = new Collection(self::$api, 'products', ['limit' => 10]);
+        $products = new Collection(self::$api, $endpoint, ['limit' => 10]);
         $this->assertEquals(20, count($products));
         foreach ($products as $i => $product) {
             $this->assertNotNull($product);
             $this->assertEquals($i + 1000, $product['id']);
             $this->assertEquals('Test product ' . ++$i, $product['title']);
         }
+    }
+
+    public function iterationEndpointsDataProvider() {
+        return [
+            ['products'],
+            ['blogs/1/articles']
+        ];
     }
 
     /**
