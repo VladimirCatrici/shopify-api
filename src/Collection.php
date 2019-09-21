@@ -181,6 +181,10 @@ class Collection implements Iterator, Countable {
         ]
     ];
 
+    private $noPaginationRequiredEndpoints = [
+        'locations'
+    ];
+
     /**
      * Collection constructor.
      * @param API $shopify
@@ -194,7 +198,7 @@ class Collection implements Iterator, Countable {
         $this->endpoint = $endpoint;
 
         $this->detectPaginationType();
-        if (empty($this->paginationType)) {
+        if (is_null($this->paginationType)) {
             throw new Exception(sprintf('The `%s` endpoint is not supported and cannot be used as a collection object, 
                 pagination type is not specified',
                 $endpoint));
@@ -344,6 +348,11 @@ class Collection implements Iterator, Countable {
      */
     private function detectPaginationType() {
         $apiVersion = $this->api->getVersion();
+
+        if (in_array($this->endpoint, $this->noPaginationRequiredEndpoints)) {
+            $this->paginationType = PaginationType::NOT_REQUIRED;
+            return;
+        }
 
         if ($apiVersion >= '2019-07') {
             foreach ($this->cursorBasedPaginationEndpoints as $version => $endpointsRegEx) {

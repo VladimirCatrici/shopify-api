@@ -8,7 +8,6 @@ use VladimirCatrici\Shopify\Collection;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use LogicException;
 use PHPUnit\Framework\TestCase;
 use VladimirCatrici\Shopify\Exception\RequestException;
 
@@ -352,6 +351,36 @@ class CollectionTest extends TestCase {
         $this->expectException(Exception::class);
         $this->expectExceptionMessageRegExp('/endpoint is not supported/');
         new Collection(self::$api, 'countries');
+    }
+
+    /**
+     * @dataProvider endpointsThatDontRequirePaginationDataProvider
+     * @param $endpoint
+     * @throws RequestException
+     */
+    public function testEndpointsNotRequiringPagination($endpoint) {
+        $mock = new MockHandler();
+        $handler = HandlerStack::create($mock);
+        $api = new API('test', 'test', [
+            'handler' => $handler
+        ]);
+        $locationsJson = file_get_contents(dirname(__FILE__) . '/_data/locations.json');
+        $locationsArr = json_decode($locationsJson, true);
+        $numLocations = count($locationsArr);
+        if (in_array($endpoint, $this->countEndpointAvailable)) {
+            $mock->append(new Response(200, [], '{"count": ' . $numLocations . '}'));
+        }
+        $mock->append(new Response(200, [], $locationsJson));
+        $items = new Collection($api, $endpoint);
+        $this->assertCount($numLocations, $items);
+        $this->assertEquals($numLocations, count($items));
+        $this->assertEquals($numLocations, $items->count());
+    }
+
+    public function endpointsThatDontRequirePaginationDataProvider() {
+        return [
+            ['locations']
+        ];
     }
 
     /**
