@@ -254,6 +254,8 @@ class Collection implements Iterator, Countable {
                 case PaginationType::SINCE:
                     $this->fetch();
                     break;
+                case PaginationType::NOT_REQUIRED:
+                    break; // Do nothing, no action required
                 default: // PaginationType::PAGE
                     $this->fetch();
                     if (count($this->items) == 0) {
@@ -315,6 +317,8 @@ class Collection implements Iterator, Countable {
                 }
                 $options += $this->options;
                 break;
+            case PaginationType::NOT_REQUIRED:
+                break; // Do nothing, no need to add options
             default: // PaginationType::PAGE
                 $options['page'] = $this->page;
                 $options += $this->options;

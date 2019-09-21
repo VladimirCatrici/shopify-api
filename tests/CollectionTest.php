@@ -366,6 +366,7 @@ class CollectionTest extends TestCase {
         ]);
         $locationsJson = file_get_contents(dirname(__FILE__) . '/_data/locations.json');
         $locationsArr = json_decode($locationsJson, true);
+        $locationsArr = $locationsArr['locations'];
         $numLocations = count($locationsArr);
         if (in_array($endpoint, $this->countEndpointAvailable)) {
             $mock->append(new Response(200, [], '{"count": ' . $numLocations . '}'));
@@ -375,6 +376,9 @@ class CollectionTest extends TestCase {
         $this->assertCount($numLocations, $items);
         $this->assertEquals($numLocations, count($items));
         $this->assertEquals($numLocations, $items->count());
+        foreach ($items as $i => $item) {
+            $this->assertEquals($locationsArr[$i]['id'], $item['id']);
+        }
     }
 
     public function endpointsThatDontRequirePaginationDataProvider() {
