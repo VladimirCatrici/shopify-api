@@ -25,5 +25,10 @@
         "psr-4": {
             "VladimirCatrici\\Shopify\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ShopifyAPI\\Tests": "tests/"
+        }
     }
 }
