@@ -15,7 +15,7 @@
         "ext-curl": "*",
         "ext-json": "*",
         "vlucas/phpdotenv": "^3.4",
-        "guzzlehttp/guzzle": "dev-master"
+        "guzzlehttp/guzzle": "^6.3.3"
     },
     "require-dev": {
 		"phpunit/phpunit": "6.*",
