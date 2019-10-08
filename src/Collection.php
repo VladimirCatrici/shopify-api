@@ -213,7 +213,7 @@ class Collection implements Iterator, Countable {
         $countEndpointAvailable = in_array($endpoint, $this->countEndpointAvailable);
         if (!$countEndpointAvailable) {
             foreach ($this->countEndpointAvailable as $countEndpoint) {
-                if (preg_match('/\\\/', $countEndpoint)) { // RegExp
+                if (preg_match('/\\\\/', $countEndpoint)) { // RegExp
                     if (preg_match('/' . $countEndpoint . '/i', $endpoint)) {
                         $countEndpointAvailable = true;
                         break;
