@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ShopifyAPI\Test;
+namespace ShopifyAPI\Tests;
 
 use VladimirCatrici\Shopify\API;
 use PHPUnit\Framework\TestCase;

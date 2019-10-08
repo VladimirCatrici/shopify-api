@@ -1,6 +1,8 @@
 <?php
 
+namespace ShopifyAPI\Tests;
 
+use InvalidArgumentException;
 use VladimirCatrici\Shopify\API;
 use VladimirCatrici\Shopify\ClientManager;
 use PHPUnit\Framework\TestCase;

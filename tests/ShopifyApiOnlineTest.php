@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ShopifyAPI\Test;
+namespace ShopifyAPI\Tests;
 
 use Exception;
 use VladimirCatrici\Shopify\API;
