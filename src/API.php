@@ -51,7 +51,7 @@ class API {
         'max_limit_rate_sleep_sec' => 1,
 
         /**
-         * @var string API version, expecting format is YYYY-MM
+         * @var string API version, expecting format is YYYY-MM. By default uses the oldest supported stable version.
          */
         'api_version' => null
     ];
