@@ -169,7 +169,7 @@ class API {
                 } elseif ($respCode == 429) {
                     $rateLimitErrors++;
                     if ($eResponse->hasHeader('Retry-After')) {
-                        sleep($eResponse->getHeader('Retry-After')[0]);
+                        sleep($eResponse->getHeaderLine('Retry-After'));
                     } else {
                         sleep(1);
                     }
@@ -209,8 +209,7 @@ class API {
 
     private function rateLimitSleepIfNeeded(Response $response) {
         if ($response->hasHeader('X-Shopify-Shop-Api-Call-Limit')) {
-            $headerValues = $response->getHeader('X-Shopify-Shop-Api-Call-Limit');
-            $limit = explode('/', $headerValues[0]);
+            $limit = explode('/', $response->getHeaderLine('X-Shopify-Shop-Api-Call-Limit'));
             $rate = $limit[0] / $limit[1];
             if ($rate > $this->getOption('max_limit_rate')) {
                 sleep($this->getOption('max_limit_rate_sleep_sec'));
