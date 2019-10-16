@@ -1,6 +1,6 @@
 Shopify API
 =
-This is a simple PHP library that supposed to provide a quick and easy way to work with Shopify REST API.
+This is a simple PHP library that provides a quick and easy way to work with Shopify REST API.
 It uses Guzzle as HTTP client. 
 
 Installation
@@ -18,13 +18,20 @@ Usage
 <?php
 require_once 'vendor/autoload.php';
 use VladimirCatrici\Shopify;
-$api = new \Shopify\API('your-store-domain', 'your-access-token');
+Shopify\ClientManager::setConfig('default', [
+    'domain' => 'your-shop-handle',
+    'access_token' => 'your-access-token',
+]);
+$api = Shopify\ClientManager::get('default');
 ```
 
 ##### Configuration
 
-There are a couple of options you can configure on initialization by passing an associative array 
-as the third option to the constructor of the API client.
+There are a few additional options you can pass to the ClientManager.
+
+- `api_version` (default: `the oldest stable supported version`)
+The Shopify API version you want to use.  
+Read more about [API versioning at Shopify](https://help.shopify.com/en/api/versioning).   
 
 - `max_attempts_on_server_errors` (default: `1`)  
 Number of attempts trying to execute the request. 
@@ -42,16 +49,6 @@ See `max_limit_rate_sleep_sec` option.
 
 - `max_limit_rate_sleep_sec` (default: `1`)  
 Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate` option.
-
-Example:
-```php
-$api = new \Shopify\API('your-store-domain', 'your-access-token', [
-  'max_attempts_on_server_errors' => 3,
-  'max_attempts_on_rate_limit_errors' => 5,
-  'max_limit_rate' => 0.75,
-  'max_limit_rate_sleep_sec' => 2
-]);
-```
 
 #### Basic usage
 
@@ -128,7 +125,8 @@ Collection
 You can use Collection object to get all the items from the specific endpoint. 
 This library works fine with both page-based and cursor-based pagination and switches between them based on API version.
 ```php
-$api = new API('your-store-domain', 'access-token');
+use VladimirCatrici\Shopify\ClientManager;
+$api = ClientManager::get('default');
 $products = new Collection($api, 'products');
 foreach ($products as $product) {
     printf('#%d. %s [$%f], 
@@ -139,7 +137,7 @@ foreach ($products as $product) {
 Troubleshooting
 -
 ```php
-use VladimirCatrici\Shopify\API\RequestException;
+use VladimirCatrici\Shopify\Exception\RequestException;
 try {
     $products = $api->get('products');
 } catch (RequestException $e) {
