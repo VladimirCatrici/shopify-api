@@ -308,7 +308,7 @@ class CollectionTest extends TestCase {
                 $links[] = '<https://test.myshopify.com/admin/api/' . $endpoint . '/' . $endpoint . '.json?limit=' . $itemsPerPage . '&page_info=' . $this->rndStr() . '>; rel="previous"';
             }
             if ($page < ($numPages - 1)) {
-                $links[] = '<https:$$//test.myshopify.com/admin/api/' . $endpoint . '/' . $endpoint . '.json?limit=' . $itemsPerPage . '&page_info=' . $this->rndStr() . '>; rel="next"';
+                $links[] = '<https://test.myshopify.com/admin/api/' . $endpoint . '/' . $endpoint . '.json?limit=' . $itemsPerPage . '&page_info=' . $this->rndStr() . '>; rel="next"';
             }
             if (count($links) > 0) {
                 $headers['Link'] = implode(',', $links);
