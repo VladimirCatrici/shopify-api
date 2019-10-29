@@ -11,15 +11,18 @@ class Webhook {
     private static $hmacSha256;
 
     public static function getTopic(): string {
-        return !empty($_SERVER['HTTP_X_SHOPIFY_TOPIC']) ? $_SERVER['HTTP_X_SHOPIFY_TOPIC'] : '';
+        return !empty($_SERVER['HTTP_X_SHOPIFY_TOPIC']) ?
+            filter_var($_SERVER['HTTP_X_SHOPIFY_TOPIC'], FILTER_SANITIZE_STRING) : '';
     }
 
     public static function getShopDomain(): string {
-        return !empty($_SERVER['HTTP_X_SHOPIFY_SHOP_DOMAIN']) ? $_SERVER['HTTP_X_SHOPIFY_SHOP_DOMAIN'] : '';
+        return !empty($_SERVER['HTTP_X_SHOPIFY_SHOP_DOMAIN']) ?
+            filter_var($_SERVER['HTTP_X_SHOPIFY_SHOP_DOMAIN'], FILTER_SANITIZE_STRING) : '';
     }
 
     public static function getApiVersion(): string {
-        return !empty($_SERVER['HTTP_X_SHOPIFY_API_VERSION']) ? $_SERVER['HTTP_X_SHOPIFY_API_VERSION'] : '';
+        return !empty($_SERVER['HTTP_X_SHOPIFY_API_VERSION']) ?
+            filter_var($_SERVER['HTTP_X_SHOPIFY_API_VERSION'], FILTER_SANITIZE_STRING) : '';
     }
 
     public static function getData(WebhookDataFormatterInterface $dataFormatter = null) {
@@ -45,6 +48,8 @@ class Webhook {
     }
 
     private static function getHmacSha256(): string {
-        return !empty(self::$hmacSha256) ? self::$hmacSha256 : self::$hmacSha256 = $_SERVER['HTTP_X_SHOPIFY_HMAC_SHA256'] ?: '';
+        return !empty(self::$hmacSha256) ?
+            self::$hmacSha256 : self::$hmacSha256 =
+                filter_var($_SERVER['HTTP_X_SHOPIFY_HMAC_SHA256'], FILTER_SANITIZE_STRING) ?: '';
     }
 }
