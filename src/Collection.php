@@ -198,7 +198,7 @@ class Collection implements Iterator, Countable {
         $this->endpoint = $endpoint;
 
         $this->detectPaginationType();
-        if (is_null($this->paginationType)) {
+        if ($this->paginationType === null) {
             throw new Exception(sprintf('The `%s` endpoint is not supported and cannot be used as a collection object, 
                 pagination type is not specified',
                 $endpoint));
@@ -283,7 +283,7 @@ class Collection implements Iterator, Countable {
      * @return int
      */
     public function count() {
-        if (is_null($this->count)) {
+        if ($this->count === null) {
             throw new BadMethodCallException('This endpoint does not support "count" operation');
         }
        return $this->count;
