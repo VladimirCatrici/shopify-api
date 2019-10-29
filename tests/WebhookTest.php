@@ -7,6 +7,9 @@ use PHPUnit\Framework\TestCase;
 use VladimirCatrici\Shopify\Webhook;
 
 class WebhookTest extends TestCase {
+    /**
+     * @var mixed
+     */
     private static $pid;
     /**
      * @var Client
