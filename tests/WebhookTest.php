@@ -18,7 +18,7 @@ class WebhookTest extends TestCase {
 
     public static function setUpBeforeClass() {
         // Command to start built-in PHP server.
-        $cmd = 'php -S localhost:7777 ' . dirname(__FILE__) . '/webhook-processor.php';
+        $cmd = 'php -S localhost:7777 "' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'webhook-processor.php"';
 
         // It depends on OS how to run it in the background.
         if (substr(php_uname(), 0, 7) == "Windows") {
