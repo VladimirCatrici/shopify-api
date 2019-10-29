@@ -109,11 +109,13 @@ class WebhookTest extends TestCase {
      * @depends testWebhookSendingToThePhpBuiltInServer
      * @param $resp
      */
-    public function testHeadersParsing($resp) {
+    public function testHeadersParsingWithBuiltInPhpServer($resp) {
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-Topic'], $resp['topic']);
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-Shop-Domain'], $resp['shop_domain']);
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-API-Version'], $resp['api_version']);
+    }
 
+    public function testHeadersParsing() {
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-Topic'], Webhook::getTopic());
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-Shop-Domain'], Webhook::getShopDomain());
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-API-Version'], Webhook::getApiVersion());
