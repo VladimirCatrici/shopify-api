@@ -17,6 +17,8 @@ class WebhookTest extends TestCase {
     private $webhookToken = 'S%do$Eq5PawfdnA%chEGRcj8Q@ANPA2h';
 
     public static function setUpBeforeClass() {
+        require_once dirname(__FILE__) . '/WebhookTestDouble.php';
+
         // Command to start built-in PHP server.
         $cmd = 'php -S localhost:7777 "' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'webhook-processor.php"';
 
