@@ -11,12 +11,27 @@ use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
 
 class API {
-
+     /**
+     * @var string Shopify store handle. If you shop permanent domain is test.myshopify.com - the "test" is the handle
+     * in this case
+     */
     private $handle;
+    /**
+     * @var string Full URL to the API including protocol and api API version e.g.
+     * https://test.myshopify.com/admin/api/2019-10/
+     */
     private $baseUrl;
+    /**
+     * @var string
+     */
     private $accessToken;
-
+    /**
+     * @var integer Last request response code
+     */
     public $respCode;
+    /**
+     * @var array Last request response headers
+     */
     public $respHeaders;
     /**
      * @var Client
