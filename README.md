@@ -114,8 +114,6 @@ $product = $api->post('products', [
 $api->delete('products/123456789');
 if ($api->respCode == 200) {
     // Item has been successfully removed
-} else {
-    // Something went wrong
 }
 ```
 
