@@ -1,0 +1,34 @@
+{
+  "name": "shopify-api",
+  "version": "0.1.3",
+  "description": "Library to operate with Shopify data via REST API",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "remark-cli": "^7.0.0",
+    "remark-lint": "^6.0.5",
+    "remark-preset-lint-recommended": "^3.0.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint-md": "remark README.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VladimirCatrici/Shopify.git"
+  },
+  "author": "Vladimir Catrici",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VladimirCatrici/Shopify/issues"
+  },
+  "homepage": "https://github.com/VladimirCatrici/Shopify#readme",
+  "remarkConfig": {
+    "plugins": [
+      "remark-preset-lint-recommended"
+    ]
+  }
+}
