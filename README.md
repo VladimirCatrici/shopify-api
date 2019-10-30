@@ -1,5 +1,5 @@
 Shopify API
-=
+===
 This is a simple PHP library that provides a quick and easy way to work with Shopify REST API.
 It uses Guzzle as HTTP client. 
 
@@ -28,34 +28,34 @@ $api = Shopify\ClientManager::get('default');
 
 There are a few additional options you can pass to the ClientManager.
 
-- `api_version` (default: `the oldest stable supported version`)
-  The Shopify API version you want to use.  
-  Read more about [API versioning at Shopify](https://help.shopify.com/en/api/versioning).   
+-   `api_version` (default: `the oldest stable supported version`)
+The Shopify API version you want to use.  
+Read more about [API versioning at Shopify](https://help.shopify.com/en/api/versioning).   
 
-- `max_attempts_on_server_errors` (default: `1`)  
-  Number of attempts trying to execute the request. 
-  It's useful because sometimes Shopify may respond with 500 error.
-  I would recommend set this to `2` or `3`. The default value is `1` though. 
+-   `max_attempts_on_server_errors` (default: `1`)  
+Number of attempts trying to execute the request. 
+It's useful because sometimes Shopify may respond with 500 error.
+I would recommend set this to `2` or `3`. The default value is `1` though. 
 
-- `max_attempts_on_rate_limit_errors` (default: `1`)  
-  Number of attempts trying to execute the request on getting `429 Too Many Connections` error.
-  This might be useful if the same API key is used by other apps which may lead to exceeding the rate limit.
-  The recommended value would be somewhere under the 10.  
+-   `max_attempts_on_rate_limit_errors` (default: `1`)  
+Number of attempts trying to execute the request on getting `429 Too Many Connections` error.
+This might be useful if the same API key is used by other apps which may lead to exceeding the rate limit.
+The recommended value would be somewhere under the 10.  
 
-- `max_limit_rate` (default: `0.5`)  
-  Number between 0 and 1 describing the maximum limit rate the client should reach before going sleep. 
-  See `max_limit_rate_sleep_sec` option.  
+-   `max_limit_rate` (default: `0.5`)  
+Number between 0 and 1 describing the maximum limit rate the client should reach before going sleep. 
+See `max_limit_rate_sleep_sec` option.  
 
-- `max_limit_rate_sleep_sec` (default: `1`)  
-  Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate` option.
+-   `max_limit_rate_sleep_sec` (default: `1`)  
+Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate` option.
 
 #### Basic usage
 
 The client implements all 4 HTTP methods that Shopify REST API supports. Method names are:
-- get(_string_ $endpoint, _array_ $options)
-- post(_string_ $endpoint, _array_ $data)
-- put(_string_ $endpoint, _array_ $data)
-- delete(_string_ $endpoint)
+-   get(_string_ $endpoint, _array_ $options)
+-   post(_string_ $endpoint, _array_ $data)
+-   put(_string_ $endpoint, _array_ $data)
+-   delete(_string_ $endpoint)
 
 The `$endpoint` parameter must always be a string that represents a Shopify API endpoint. 
 It should not contain the `/admin/api/#{api_version}/` part in the beginning. 
