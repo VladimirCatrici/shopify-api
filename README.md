@@ -1,19 +1,19 @@
 Shopify API
-===
+=
 This is a simple PHP library that provides a quick and easy way to work with Shopify REST API.
 It uses Guzzle as HTTP client. 
 
 Installation
 -
 
-```
+```shell
 composer require vladimircatrici/shopify
 ```
 
 Usage
 -
 
-##### Initialization
+### Initialization
 ```php
 require_once 'vendor/autoload.php';
 use VladimirCatrici\Shopify;
@@ -24,7 +24,7 @@ Shopify\ClientManager::setConfig('default', [
 $api = Shopify\ClientManager::get('default');
 ```
 
-##### Configuration
+### Configuration
 
 There are a few additional options you can pass to the ClientManager.
 
@@ -49,7 +49,7 @@ See `max_limit_rate_sleep_sec` option.
 -   `max_limit_rate_sleep_sec` (default: `1`)  
 Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate` option.
 
-#### Basic usage
+### Basic usage
 
 The client implements all 4 HTTP methods that Shopify REST API supports. Method names are:
 -   get(_string_ $endpoint, _array_ $options)
@@ -67,7 +67,7 @@ $api->get('orders');
  
 See more examples below:
 
-##### Get items
+#### Get items
 
 ```php
 $numProducts = $api->get('products/count'); // int
@@ -78,7 +78,7 @@ foreach ($products as $product) {
 }
 ```
 
-##### Get `id` and `title` fields of 250 items from the 2nd page
+#### Get `id` and `title` fields of 250 items from the 2nd page
 
 ```php
 $products = $api->get('products', [
@@ -88,13 +88,13 @@ $products = $api->get('products', [
 ]);
 ```
 
-##### Get single item
+#### Get single item
 ```php
 $product = $api->get('products/123456789');
 echo sprintf('#%d. %s', $product['id'], $product['title']);
 ```
 
-##### Update item
+#### Update item
 ```php
 $product = $api->put('products/123456789', [
     'title' => 'New title'
@@ -102,14 +102,14 @@ $product = $api->put('products/123456789', [
 echo sprintf('#%d. %s', $product['id'], $product['title']); // #1. New title
 ```
 
-##### Create item
+#### Create item
 ```php
 $product = $api->post('products', [
     'title' => 'New product' 
 ]);
 ```
 
-##### Delete item
+#### Delete item
 ```php
 $api->delete('products/123456789');
 if ($api->respCode == 200) {
@@ -129,8 +129,31 @@ $api = ClientManager::get('default');
 $products = new Collection($api, 'products');
 foreach ($products as $product) {
     printf('#%d. %s [$%f], 
-        $product['id'], $product['title'], $product['price']);
+        $product['id'], $product['title'], $product['price']
+    );
 }
+```
+
+Webhooks
+-
+You can use this library to listen for shop's webhooks.
+```php
+use VladimirCatrici\Shopify;
+if (Shopify\Webhook::validate('your-webhook-token')) {
+    printf('`%s` webhook triggered on your store (%s). Data received: %s', 
+        Shopify\Webhook::getTopic(), 
+        Shopify\Webhook::getShopDomain(),
+        Shopify\Webhook::getData()
+    );
+} else {
+    // Invalid request | Unauthorized webhook | Data corrupted
+}
+
+// You can also get webhook data as array right away
+$data = Shopify\Webhook::getDataAsArray();
+printf('Product ID#%d, product title: %s', 
+    $data['id'], $data['title']
+);
 ```
 
 Troubleshooting
