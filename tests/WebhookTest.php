@@ -116,7 +116,7 @@ class WebhookTest extends TestCase {
     }
 
     public function testChangedHeadersReturnNull() {
-        // Setup HTTP headers into the global $_SERVER variable to be able test Webhook class using a test double
+        // Setup HTTP headers into the global $_SERVER which MUST BE ignored by Webhook class
         foreach ($this->requestOptions['headers'] as $key => $val) {
             $_SERVER['HTTP_' . str_replace('-', '_', mb_strtoupper($key))] = $val;
         }
@@ -161,6 +161,9 @@ class WebhookTest extends TestCase {
     }
 
     public function testDoubleWebhookPassesValidationWhenEverythingIsOk() {
+        WebhookTestDouble::setTopic($this->requestOptions['headers']['X-Shopify-Topic']);
+        WebhookTestDouble::setShopDomain($this->requestOptions['headers']['X-Shopify-Shop-Domain']);
+        WebhookTestDouble::setHmacSha256($this->requestOptions['headers']['X-Shopify-Hmac-Sha256']);
         WebhookTestDouble::setInputStream($this->requestOptions['body']);
         $this->assertTrue(WebhookTestDouble::validate($this->webhookToken));
     }
