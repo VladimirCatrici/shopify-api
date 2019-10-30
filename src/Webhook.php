@@ -46,7 +46,7 @@ class Webhook {
 
     public static function validate(string $token) : bool {
         $calculated_hmac = base64_encode(hash_hmac('sha256', self::getData(), $token, true));
-        return (self::getHmacSha256() == $calculated_hmac);
+        return (static::getHmacSha256() == $calculated_hmac);
     }
 
     protected static function getInputStream() {
