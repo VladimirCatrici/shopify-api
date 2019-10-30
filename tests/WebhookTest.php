@@ -89,11 +89,6 @@ class WebhookTest extends TestCase {
                 'X-Shopify-Hmac-Sha256' => $signature
             ]
         ];
-
-        // Setup HTTP headers into the global $_SERVER variable to be able test Webhook class using a test double
-        foreach ($this->requestOptions['headers'] as $key => $val) {
-            $_SERVER['HTTP_' . str_replace('-', '_', mb_strtoupper($key))] = $val;
-        }
     }
 
     public function tearDown() {
@@ -120,10 +115,15 @@ class WebhookTest extends TestCase {
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-API-Version'], $resp['api_version']);
     }
 
-    public function testHeadersParsing() {
-        $this->assertEquals($this->requestOptions['headers']['X-Shopify-Topic'], Webhook::getTopic());
-        $this->assertEquals($this->requestOptions['headers']['X-Shopify-Shop-Domain'], Webhook::getShopDomain());
-        $this->assertEquals($this->requestOptions['headers']['X-Shopify-API-Version'], Webhook::getApiVersion());
+    public function testChangedHeadersReturnNull() {
+        // Setup HTTP headers into the global $_SERVER variable to be able test Webhook class using a test double
+        foreach ($this->requestOptions['headers'] as $key => $val) {
+            $_SERVER['HTTP_' . str_replace('-', '_', mb_strtoupper($key))] = $val;
+        }
+
+        $this->assertNull(Webhook::getTopic());
+        $this->assertNull(Webhook::getShopDomain());
+        $this->assertNull(Webhook::getApiVersion());
     }
 
     public function testMissingHeadersReturnEmptyStrings() {
@@ -160,7 +160,7 @@ class WebhookTest extends TestCase {
         $this->assertTrue($resp['validation']);
     }
 
-    public function testDoublePassingValidationWhenEverythingIsOk() {
+    public function testDoubleWebhookPassesValidationWhenEverythingIsOk() {
         WebhookTestDouble::setInputStream($this->requestOptions['body']);
         $this->assertTrue(WebhookTestDouble::validate($this->webhookToken));
     }
