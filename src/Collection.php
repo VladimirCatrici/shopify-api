@@ -26,13 +26,9 @@ class Collection implements Iterator, Countable {
      */
     private $nextPageInfo;
 
-    private $numPages;
-
     private $items = [];
 
     private $chunkCount;
-
-    private $fetched = false;
 
     private $partIndex = 0;
 
@@ -45,144 +41,41 @@ class Collection implements Iterator, Countable {
      */
     private $paginationType;
 
-    private $isCursorBasedPagination = false;
-
-    private $countEndpointAvailable = [
-        'customers',
-        'customer_saved_searches',
-        'products',
-        'products\/\d+\/images',
-        'products\/\d+\/variants',
-        'product_listings',
-        'custom_collections',
-        'smart_collections',
-        'collects',
-        'price_rules',
-        'draft_orders',
-        'orders',
-        'orders\/\d+\/transactions',
-        'orders\/\d+\/fulfillments',
-        'gift_cards',
-        'checkouts',
-        'checkouts\/\[a-z0-9]+\/payments',
-        'blogs',
-        'blogs\/\d+\/articles',
-        'comments',
-        'pages',
-        'countries',
-        'countries\/\d+\/provinces',
-        'script_tags',
-        'metafields',
-        '.+\/\d+\/metafields',
-        'locations',
-        'redirects',
-        'webhooks',
-        'marketing_events',
-        'events'
-    ];
-
-    private $sinceIdSupport = [
-        'shopify_payments\/disputes',
-        'shopify_payments\/payouts',
-        'shopify_payments\/balance\/transactions',
-        'reports',
-        'application_charges',
-        'recurring_application_charges',
-        'customers',
-        'customers\/\d+\/addresses',
-        'customer_saved_searches',
-        'price_rules',
-        'events',
-        'webhooks',
-        'articles',
-        'blogs',
-        'blogs\/\d+\/articles',
-        'comments',
-        'pages',
-        'redirects',
-        'script_tags',
-        'checkouts',
-        'draft_orders',
-        'orders',
-        'orders\/\d+\/transactions',
-        'gift_cards',
-        'collects',
-        'custom_collections',
-        'products',
-        'products\/\d+\/images',
-        'products\/\d+\/variants',
-        'smart_collections',
-        'metafields'
-    ];
-
-    private $pageBasedPaginationEndpoints = [
-        'inventory_items',
-        'inventory_levels',
-        'marketing_events',
-    ];
-
-    private $cursorBasedPaginationEndpoints = [
-        /**
-         * According to: https://help.shopify.com/en/api/versioning/release-notes/2019-07
-         */
-        '2019-07' => [
-            'collects',
-            'collection_listings',
-            'collection_listings\/%d+\/product_ids',
-            'customer_saved_searches',
-            'events',
-            'metafields',
-            'products',
-            'search',
-            'product_listings',
-            'variants\/search',
-        ],
-
-        /**
-         * According to: https://help.shopify.com/en/api/versioning/release-notes/2019-10
-         */
-        '2019-10' => [
-            'abandoned_checkouts',
-            'checkouts',
-            'blogs\/\d+\/articles',
-            'blogs',
-            'comments',
+    private $endpointsSupport = [
+        // `count` endpoint available
+        'count' => [
             'customers',
-            'customers\/search',
-            'customers\/\d+\/addresses',
+            'customer_saved_searches',
+            'products',
+            'products\/\d+\/images',
+            'products\/\d+\/variants',
+            'product_listings',
             'custom_collections',
             'smart_collections',
+            'collects',
             'price_rules',
-            'price_rules\/product_ids',
-            'price_rules\/\d+\/discount_codes',
-            'shopify_payments\/disputes',
-            'gift_cards',
-            'gift_cards\/search',
-            'inventory_items',
-            'inventory_levels',
-            'locations\/\d+\/inventory_levels',
-            'marketing_events',
             'draft_orders',
             'orders',
+            'orders\/\d+\/transactions',
             'orders\/\d+\/fulfillments',
-            'orders\/\d+\/risks',
-            'shopify_payments\/payouts',
-            'shopify_payments\/balance\/transactions',
+            'gift_cards',
+            'checkouts',
+            'checkouts\/\[a-z0-9]+\/payments',
+            'blogs',
+            'blogs\/\d+\/articles',
+            'comments',
             'pages',
-            'product_listings\/product_ids',
-            'products\/\d+\/variants',
-            'variants',
-            'redirects',
-            'orders\/\d\/refunds',
-            'reports',
+            'countries',
+            'countries\/\d+\/provinces',
             'script_tags',
-            'tender_transactions',
-            'webhooks'
+            'metafields',
+            '.+\/\d+\/metafields',
+            'locations',
+            'redirects',
+            'webhooks',
+            'marketing_events',
+            'events'
         ]
-    ];
-
-    private $noPaginationRequiredEndpoints = [
-        'locations'
     ];
 
     /**
@@ -197,12 +90,8 @@ class Collection implements Iterator, Countable {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
 
-        $this->detectPaginationType();
-        if ($this->paginationType === null) {
-            throw new Exception(sprintf('The `%s` endpoint is not supported and cannot be used as a collection object, 
-                pagination type is not specified',
-                $endpoint));
-        }
+        // TODO: set cursor based pagination after the first request to get items. If it returns Link header, then it's cursor based pagination
+        $this->paginationType = PaginationType::detect($endpoint, $this->api->getVersion());
 
         if (array_key_exists('limit', $options)) {
             $this->limit = $options['limit'];
@@ -210,9 +99,9 @@ class Collection implements Iterator, Countable {
         }
         $this->options = $options;
 
-        $countEndpointAvailable = in_array($endpoint, $this->countEndpointAvailable);
+        $countEndpointAvailable = in_array($endpoint, $this->endpointsSupport['count']);
         if (!$countEndpointAvailable) {
-            foreach ($this->countEndpointAvailable as $countEndpoint) {
+            foreach ($this->endpointsSupport['count'] as $countEndpoint) {
                 if (preg_match('/\\\\/', $countEndpoint)) { // RegExp
                     if (preg_match('/' . $countEndpoint . '/i', $endpoint)) {
                         $countEndpointAvailable = true;
@@ -223,7 +112,6 @@ class Collection implements Iterator, Countable {
         }
         if ($countEndpointAvailable) {
             $this->count = $this->api->get($this->endpoint . '/count', $this->options);
-            $this->numPages = ceil($this->count / $this->limit);
         }
     }
 
@@ -258,9 +146,6 @@ class Collection implements Iterator, Countable {
                     break; // Do nothing, no action required
                 default: // PaginationType::PAGE
                     $this->fetch();
-                    if (count($this->items) == 0) {
-                        $this->numPages = $this->page;
-                    }
             }
         }
         $this->currentIndex++;
@@ -299,7 +184,7 @@ class Collection implements Iterator, Countable {
         ];
         switch ($this->paginationType) {
             case PaginationType::CURSOR:
-                /**
+                /*
                  * Cursor-based pagination accepts other parameters rather than limit only in the first request.
                  * To get next pages need you need only pass `limit` and `page_info` parameters.
                  */
@@ -310,11 +195,7 @@ class Collection implements Iterator, Countable {
                 }
                 break;
             case PaginationType::SINCE:
-                if ($this->page == 1) {
-                    $options['since_id'] = 1;
-                } else {
-                    $options['since_id'] = $this->items[$this->partIndex - 1]['id'];
-                }
+                $options['since_id'] = $this->page == 1 ? 1 : $this->items[$this->partIndex - 1]['id'];
                 $options += $this->options;
                 break;
             case PaginationType::NOT_REQUIRED:
@@ -325,9 +206,8 @@ class Collection implements Iterator, Countable {
         }
         $this->items = $this->api->get($this->endpoint, $options);
         $this->chunkCount = count($this->items);
-        $this->fetched = true;
         $this->partIndex = 0;
-        if ($this->isCursorBasedPagination) {
+        if ($this->paginationType == PaginationType::CURSOR) {
             $this->updateNextPageInfo();
         }
     }
@@ -344,52 +224,5 @@ class Collection implements Iterator, Countable {
             return;
         }
         $this->nextPageInfo = $matches[1];
-    }
-
-    /**
-     * @throws Exception
-     * TODO: set cursor based pagination after the first request to get items. If it returns Link header, than it's cursor based pagination
-     */
-    private function detectPaginationType() {
-        $apiVersion = $this->api->getVersion();
-
-        if (in_array($this->endpoint, $this->noPaginationRequiredEndpoints)) {
-            $this->paginationType = PaginationType::NOT_REQUIRED;
-            return;
-        }
-
-        if ($apiVersion >= '2019-07') {
-            foreach ($this->cursorBasedPaginationEndpoints as $version => $endpointsRegEx) {
-                if ($version > $apiVersion) {
-                    continue;
-                }
-                foreach ($endpointsRegEx as $re) {
-                    if (!preg_match('/' . $re . '/', $this->endpoint)) {
-                        continue;
-                    }
-                    $this->isCursorBasedPagination = true;
-                    $this->paginationType = PaginationType::CURSOR;
-                    break(2);
-                }
-            }
-        }
-
-        if (empty($this->paginationType)) {
-            foreach ($this->sinceIdSupport as $endpointRegEx) {
-                if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                    $this->paginationType = PaginationType::SINCE;
-                    break;
-                }
-            }
-        }
-
-        if (empty($this->paginationType)) {
-            foreach ($this->pageBasedPaginationEndpoints as $endpointRegEx) {
-                if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                    $this->paginationType = PaginationType::PAGE;
-                    break;
-                }
-            }
-        }
     }
 }

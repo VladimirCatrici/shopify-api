@@ -349,8 +349,9 @@ class CollectionTest extends TestCase {
      */
     public function testThrowingExceptionForEndpointsThatDontSupportCollection() {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessageRegExp('/endpoint is not supported/');
-        new Collection(self::$api, 'countries');
+        $endpointToTest = 'countries';
+        $this->expectExceptionMessage(sprintf('Pagination type is not defined for `%s` endpoint', $endpointToTest));
+        new Collection(self::$api, $endpointToTest);
     }
 
     /**

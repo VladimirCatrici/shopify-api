@@ -159,8 +159,9 @@ class API {
     private function request($method, $endpoint, $query = [], $data = []) {
         $fullApiRequestURL = $this->generateFullApiRequestURL($endpoint, $query);
 
-        $maxAttemptsOnServerErrors = $this->getOption('max_attempts_on_server_errors');
-        $maxAttemptsOnRateLimitErrors = $this->getOption('max_attempts_on_rate_limit_errors');
+        $maxAttemptsOnServerErrors      = $this->getOption('max_attempts_on_server_errors');
+        $maxAttemptsOnRateLimitErrors   = $this->getOption('max_attempts_on_rate_limit_errors');
+
         $serverErrors = 0;
         $rateLimitErrors = 0;
         $lastException = null;
@@ -181,16 +182,18 @@ class API {
                 $respCode = $eResponse->getStatusCode();
                 if ($respCode >= 500) {
                     $serverErrors++;
-                } elseif ($respCode == 429) {
+                    continue;
+                }
+                if ($respCode == 429) {
                     $rateLimitErrors++;
                     if ($eResponse->hasHeader('Retry-After')) {
                         sleep($eResponse->getHeaderLine('Retry-After'));
-                    } else {
-                        sleep(1);
+                        continue;
                     }
-                } else {
-                    break;
+                    sleep(1);
+                    continue;
                 }
+                break;
             }
         }
 
@@ -205,10 +208,7 @@ class API {
         // Response Body
         $body = $response->getBody()->getContents();
         $body = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
-        if (is_array($body) && !empty(key($body))) {
-            return $body[key($body)];
-        }
-        return $body;
+        return is_array($body) && !empty(key($body)) ? $body[key($body)] : $body;
     }
 
     private function generateFullApiRequestURL($endpoint, $queryParams = []) {
@@ -300,7 +300,7 @@ class API {
             if (is_array($this->respHeaders) && array_key_exists($headerKey, $this->respHeaders)) {
                 $this->options['api_version'] = $this->respHeaders[$headerKey][0];
             } else {
-                $this->options['api_version'] = $this->getOldestSupportedVersion();
+                $this->options['api_version'] = static::getOldestSupportedVersion();
             }
         }
         return $this->getOption('api_version');
@@ -311,7 +311,7 @@ class API {
      * @return string
      * @throws Exception
      */
-    public function getOldestSupportedVersion($date = null) {
+    public static function getOldestSupportedVersion($date = null) {
         if (is_string($date)) {
             $dt = new DateTime($date);
         } elseif ($date instanceof DateTime) {
