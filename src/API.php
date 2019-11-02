@@ -9,6 +9,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
+use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
+use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
 class API {
      /**
@@ -37,6 +39,10 @@ class API {
      * @var Client
      */
     private $client;
+    /**
+     * @var ResponseDataFormatterInterface
+     */
+    private $responseFormatter;
 
     private $options = [
         /**
@@ -68,7 +74,12 @@ class API {
         /**
          * @var string API version, expecting format is YYYY-MM. By default uses the oldest supported stable version.
          */
-        'api_version' => null
+        'api_version' => null,
+
+        /**
+         * @var string Response data formatter class name
+         */
+        'response_data_formatter' => null
     ];
 
     /**
@@ -99,6 +110,11 @@ class API {
             ]
         ] + $clientOptions);
         $this->setClient($client);
+
+        // Initialize default response data formatter (if necessary)
+        if (empty($this->responseFormatter)) {
+            $this->responseFormatter = new ResponseArrayFormatter();
+        }
     }
 
     /**
@@ -166,13 +182,13 @@ class API {
         $rateLimitErrors = 0;
         $lastException = null;
         while ($serverErrors < $maxAttemptsOnServerErrors && $rateLimitErrors < $maxAttemptsOnRateLimitErrors) {
+            $options = [];
+            if (in_array($method, ['put', 'post']) && !empty($data)) {
+                $options = [
+                    'json' => $data
+                ];
+            }
             try {
-                $options = [];
-                if (in_array($method, ['put', 'post']) && !empty($data)) {
-                    $options = [
-                        'json' => $data
-                    ];
-                }
                 /** @noinspection PhpUnhandledExceptionInspection */
                 $response = $this->client->request($method, $fullApiRequestURL, $options);
                 break;
@@ -207,8 +223,14 @@ class API {
 
         // Response Body
         $body = $response->getBody()->getContents();
-        $body = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
-        return is_array($body) && !empty(key($body)) ? $body[key($body)] : $body;
+        return $this->responseFormatter->output($body);
+    }
+
+    /**
+     * @return ResponseDataFormatterInterface
+     */
+    private function getResponseDataFormatter() {
+        return $this->getOption('response_data_formatter');
     }
 
     private function generateFullApiRequestURL($endpoint, $queryParams = []) {
@@ -255,6 +277,10 @@ class API {
                 $currentClientConfig['base_uri'] = $this->baseUrl;
                 $this->setClient(new Client($currentClientConfig));
             }
+        }
+
+        if ($key == 'response_data_formatter') {
+            $this->responseFormatter = new $value();
         }
 
         $this->options[$key] = $value;

@@ -75,6 +75,103 @@ class Collection implements Iterator, Countable {
             'webhooks',
             'marketing_events',
             'events'
+        ],
+        // `since_id` pagination available
+        'since' => [
+            'shopify_payments\/disputes',
+            'shopify_payments\/payouts',
+            'shopify_payments\/balance\/transactions',
+            'reports',
+            'application_charges',
+            'recurring_application_charges',
+            'customers',
+            'customers\/\d+\/addresses',
+            'customer_saved_searches',
+            'price_rules',
+            'events',
+            'webhooks',
+            'articles',
+            'blogs',
+            'blogs\/\d+\/articles',
+            'comments',
+            'pages',
+            'redirects',
+            'script_tags',
+            'checkouts',
+            'draft_orders',
+            'orders',
+            'orders\/\d+\/transactions',
+            'gift_cards',
+            'collects',
+            'custom_collections',
+            'products',
+            'products\/\d+\/images',
+            'products\/\d+\/variants',
+            'smart_collections',
+            'metafields'
+        ],
+        // Page-based pagination available (up to 2019-07 incl.)
+        'page' => [
+            'inventory_items',
+            'inventory_levels',
+            'marketing_events'
+        ],
+        'cursor' => [
+            // According to: https://help.shopify.com/en/api/versioning/release-notes/2019-07
+            '2019-07' => [
+                'collects',
+                'collection_listings',
+                'collection_listings\/%d+\/product_ids',
+                'customer_saved_searches',
+                'events',
+                'metafields',
+                'products',
+                'search',
+                'product_listings',
+                'variants\/search',
+            ],
+            // According to: https://help.shopify.com/en/api/versioning/release-notes/2019-10
+            '2019-10' => [
+                'abandoned_checkouts',
+                'checkouts',
+                'blogs\/\d+\/articles',
+                'blogs',
+                'comments',
+                'customers',
+                'customers\/search',
+                'customers\/\d+\/addresses',
+                'custom_collections',
+                'smart_collections',
+                'price_rules',
+                'price_rules\/product_ids',
+                'price_rules\/\d+\/discount_codes',
+                'shopify_payments\/disputes',
+                'gift_cards',
+                'gift_cards\/search',
+                'inventory_items',
+                'inventory_levels',
+                'locations\/\d+\/inventory_levels',
+                'marketing_events',
+                'draft_orders',
+                'orders',
+                'orders\/\d+\/fulfillments',
+                'orders\/\d+\/risks',
+                'shopify_payments\/payouts',
+                'shopify_payments\/balance\/transactions',
+                'pages',
+                'product_listings\/product_ids',
+                'products\/\d+\/variants',
+                'variants',
+                'redirects',
+                'orders\/\d\/refunds',
+                'reports',
+                'script_tags',
+                'tender_transactions',
+                'webhooks'
+            ]
+        ],
+        'no_pagination' => [
+            'locations'
         ]
     ];
 
@@ -89,9 +186,7 @@ class Collection implements Iterator, Countable {
     public function __construct(API $shopify, $endpoint, $options = []) {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
-
-        // TODO: set cursor based pagination after the first request to get items. If it returns Link header, then it's cursor based pagination
-        $this->paginationType = PaginationType::detect($endpoint, $this->api->getVersion());
+        $this->paginationType = $this->detectPaginationType();
 
         if (array_key_exists('limit', $options)) {
             $this->limit = $options['limit'];
@@ -224,5 +319,45 @@ class Collection implements Iterator, Countable {
             return;
         }
         $this->nextPageInfo = $matches[1];
+    }
+
+    /**
+     * @throws Exception
+     * TODO: set cursor based pagination after the first request to get items. If it returns Link header, than it's cursor based pagination
+     */
+    private function detectPaginationType() {
+        $apiVersion = $this->api->getVersion();
+
+        if (in_array($this->endpoint, $this->endpointsSupport['no_pagination'])) {
+            return PaginationType::NOT_REQUIRED;
+        }
+
+        if ($apiVersion >= '2019-07') {
+            foreach ($this->endpointsSupport['cursor'] as $version => $endpointsRegEx) {
+                if ($version > $apiVersion) {
+                    continue;
+                }
+                foreach ($endpointsRegEx as $re) {
+                    if (!preg_match('/' . $re . '/', $this->endpoint)) {
+                        continue;
+                    }
+                    return PaginationType::CURSOR;
+                }
+            }
+        }
+
+        foreach ($this->endpointsSupport['since'] as $endpointRegEx) {
+            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
+                return PaginationType::SINCE;
+            }
+        }
+
+        foreach ($this->endpointsSupport['page'] as $endpointRegEx) {
+            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
+                return PaginationType::PAGE;
+            }
+        }
+
+        throw new Exception(sprintf('Pagination type is not defined for `%s` endpoint', $this->endpoint));
     }
 }
