@@ -326,12 +326,31 @@ class Collection implements Iterator, Countable {
      * TODO: set cursor based pagination after the first request to get items. If it returns Link header, than it's cursor based pagination
      */
     private function detectPaginationType() {
-        $apiVersion = $this->api->getVersion();
-
         if (in_array($this->endpoint, $this->endpointsSupport['no_pagination'])) {
             return PaginationType::NOT_REQUIRED;
         }
 
+        if ($this->supportsCursorBasedPagination()) {
+            return PaginationType::CURSOR;
+        }
+
+        if ($this->supportsSincePagination()) {
+            return PaginationType::SINCE;
+        }
+
+        if ($this->supportsPageBasedPagination()) {
+            return PaginationType::PAGE;
+        }
+
+        throw new Exception(sprintf('Pagination type is not defined for `%s` endpoint', $this->endpoint));
+    }
+
+    /**
+     * @return bool
+     * @throws Exception
+     */
+    private function supportsCursorBasedPagination() {
+        $apiVersion = $this->api->getVersion();
         if ($apiVersion >= '2019-07') {
             foreach ($this->endpointsSupport['cursor'] as $version => $endpointsRegEx) {
                 if ($version > $apiVersion) {
@@ -341,23 +360,28 @@ class Collection implements Iterator, Countable {
                     if (!preg_match('/' . $re . '/', $this->endpoint)) {
                         continue;
                     }
-                    return PaginationType::CURSOR;
+                    return true;
                 }
             }
         }
+        return false;
+    }
 
+    private function supportsSincePagination() {
         foreach ($this->endpointsSupport['since'] as $endpointRegEx) {
             if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                return PaginationType::SINCE;
+                return true;
             }
         }
+        return false;
+    }
 
+    private function supportsPageBasedPagination() {
         foreach ($this->endpointsSupport['page'] as $endpointRegEx) {
             if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                return PaginationType::PAGE;
+                return true;
             }
         }
-
-        throw new Exception(sprintf('Pagination type is not defined for `%s` endpoint', $this->endpoint));
+        return false;
     }
 }
