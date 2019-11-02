@@ -226,13 +226,6 @@ class API {
         return $this->responseFormatter->output($body);
     }
 
-    /**
-     * @return ResponseDataFormatterInterface
-     */
-    private function getResponseDataFormatter() {
-        return $this->getOption('response_data_formatter');
-    }
-
     private function generateFullApiRequestURL($endpoint, $queryParams = []) {
         if (!preg_match('/\.json$/', $endpoint)) {
             $endpoint .= '.json';
