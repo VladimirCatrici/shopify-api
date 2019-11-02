@@ -77,7 +77,7 @@ class Collection implements Iterator, Countable {
             'events'
         ],
         // `since_id` pagination available
-        'since' => [
+        PaginationType::SINCE => [
             'shopify_payments\/disputes',
             'shopify_payments\/payouts',
             'shopify_payments\/balance\/transactions',
@@ -111,12 +111,12 @@ class Collection implements Iterator, Countable {
             'metafields'
         ],
         // Page-based pagination available (up to 2019-07 incl.)
-        'page' => [
+        PaginationType::PAGE => [
             'inventory_items',
             'inventory_levels',
             'marketing_events'
         ],
-        'cursor' => [
+        PaginationType::CURSOR => [
             // According to: https://help.shopify.com/en/api/versioning/release-notes/2019-07
             '2019-07' => [
                 'collects',
@@ -170,7 +170,7 @@ class Collection implements Iterator, Countable {
                 'webhooks'
             ]
         ],
-        'no_pagination' => [
+        PaginationType::NOT_REQUIRED => [
             'locations'
         ]
     ];
@@ -326,19 +326,19 @@ class Collection implements Iterator, Countable {
      * TODO: set cursor based pagination after the first request to get items. If it returns Link header, than it's cursor based pagination
      */
     private function detectPaginationType() {
-        if (in_array($this->endpoint, $this->endpointsSupport['no_pagination'])) {
+        if ($this->supportsPagination(PaginationType::NOT_REQUIRED)) {
             return PaginationType::NOT_REQUIRED;
         }
 
-        if ($this->supportsCursorBasedPagination()) {
+        if ($this->supportsPagination(PaginationType::CURSOR)) {
             return PaginationType::CURSOR;
         }
 
-        if ($this->supportsSincePagination()) {
+        if ($this->supportsPagination(PaginationType::SINCE)) {
             return PaginationType::SINCE;
         }
 
-        if ($this->supportsPageBasedPagination()) {
+        if ($this->supportsPagination(PaginationType::PAGE)) {
             return PaginationType::PAGE;
         }
 
@@ -346,40 +346,31 @@ class Collection implements Iterator, Countable {
     }
 
     /**
+     * @param int $type Pagination type const e.g. PaginationType::CURSOR or PaginationType::SINCE
      * @return bool
      * @throws Exception
      */
-    private function supportsCursorBasedPagination() {
-        $apiVersion = $this->api->getVersion();
-        if ($apiVersion >= '2019-07') {
-            foreach ($this->endpointsSupport['cursor'] as $version => $endpointsRegEx) {
-                if ($version > $apiVersion) {
-                    continue;
-                }
-                foreach ($endpointsRegEx as $re) {
-                    if (!preg_match('/' . $re . '/', $this->endpoint)) {
+    private function supportsPagination(int $type) {
+        if ($type == PaginationType::CURSOR) {
+            $apiVersion = $this->api->getVersion();
+            if ($apiVersion >= '2019-07') {
+                foreach ($this->endpointsSupport[PaginationType::CURSOR] as $version => $endpointsRegEx) {
+                    if ($version > $apiVersion) {
                         continue;
                     }
-                    return true;
+                    foreach ($endpointsRegEx as $re) {
+                        if (!preg_match('/' . $re . '/', $this->endpoint)) {
+                            continue;
+                        }
+                        return true;
+                    }
                 }
             }
-        }
-        return false;
-    }
-
-    private function supportsSincePagination() {
-        foreach ($this->endpointsSupport['since'] as $endpointRegEx) {
-            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function supportsPageBasedPagination() {
-        foreach ($this->endpointsSupport['page'] as $endpointRegEx) {
-            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                return true;
+        } else {
+            foreach ($this->endpointsSupport[$type] as $endpointRegEx) {
+                if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
+                    return true;
+                }
             }
         }
         return false;
