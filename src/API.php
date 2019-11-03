@@ -181,13 +181,13 @@ class API {
         $serverErrors = 0;
         $rateLimitErrors = 0;
         $lastException = null;
+        $options = [];
+        if (in_array($method, ['put', 'post']) && !empty($data)) {
+            $options = [
+                'json' => $data
+            ];
+        }
         while ($serverErrors < $maxAttemptsOnServerErrors && $rateLimitErrors < $maxAttemptsOnRateLimitErrors) {
-            $options = [];
-            if (in_array($method, ['put', 'post']) && !empty($data)) {
-                $options = [
-                    'json' => $data
-                ];
-            }
             try {
                 /** @noinspection PhpUnhandledExceptionInspection */
                 $response = $this->client->request($method, $fullApiRequestURL, $options);
@@ -196,20 +196,23 @@ class API {
                 $lastException = new RequestException($this->client, $e);
                 $eResponse = $e->getResponse();
                 $respCode = $eResponse->getStatusCode();
-                if ($respCode >= 500) {
-                    $serverErrors++;
-                    continue;
+                switch ($respCode) {
+                    case 500:
+                    case 503:
+                    case 504:
+                        $serverErrors++;
+                        break;
+                    case 429:
+                        $rateLimitErrors++;
+                        if ($eResponse->hasHeader('Retry-After')) {
+                            sleep($eResponse->getHeaderLine('Retry-After'));
+                            break;
+                        }
+                        sleep(1);
+                        break;
+                    default:
+                        break(2);
                 }
-                if ($respCode == 429) {
-                    $rateLimitErrors++;
-                    if ($eResponse->hasHeader('Retry-After')) {
-                        sleep($eResponse->getHeaderLine('Retry-After'));
-                        continue;
-                    }
-                    sleep(1);
-                    continue;
-                }
-                break;
             }
         }
 

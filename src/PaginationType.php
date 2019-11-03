@@ -152,13 +152,6 @@ class PaginationType {
     }
 
     /**
-     * @param int $type
-     */
-    public function setType(int $type): void {
-        $this->type = $type;
-    }
-
-    /**
      * @param int $type Pagination type const e.g. PaginationType::CURSOR or PaginationType::SINCE
      * @return bool
      * @throws Exception

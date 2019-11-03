@@ -188,9 +188,9 @@ class Collection implements Iterator, Countable {
                  */
                 if ($this->page == 1) {
                     $options += $this->options;
-                } else {
-                    $options['page_info'] = $this->nextPageInfo;
+                    break;
                 }
+                $options['page_info'] = $this->nextPageInfo;
                 break;
             case PaginationType::SINCE:
                 $options['since_id'] = $this->page == 1 ? 1 : $this->items[$this->partIndex - 1]['id'];
