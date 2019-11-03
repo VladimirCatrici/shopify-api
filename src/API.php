@@ -194,25 +194,12 @@ class API {
                 break;
             } catch (\GuzzleHttp\Exception\RequestException $e) {
                 $lastException = new RequestException($this->client, $e);
-                $eResponse = $e->getResponse();
-                $respCode = $eResponse->getStatusCode();
-                switch ($respCode) {
-                    case 500:
-                    case 503:
-                    case 504:
-                        $serverErrors++;
-                        break;
-                    case 429:
-                        $rateLimitErrors++;
-                        if ($eResponse->hasHeader('Retry-After')) {
-                            sleep($eResponse->getHeaderLine('Retry-After'));
-                            break;
-                        }
-                        sleep(1);
-                        break;
-                    default:
-                        break(2);
+                $handlerResult = $this->handleRequestException($e);
+                if ($handlerResult['break']) {
+                    break;
                 }
+                $serverErrors += $handlerResult['server_error'];
+                $rateLimitErrors += $handlerResult['rate_limit_error'];
             }
         }
 
@@ -227,6 +214,36 @@ class API {
         // Response Body
         $body = $response->getBody()->getContents();
         return $this->responseFormatter->output($body);
+    }
+
+    /**
+     * @param $e \GuzzleHttp\Exception\RequestException
+     * @return array
+     */
+    private function handleRequestException($e) {
+        $output = [
+            'server_error' => 0,
+            'rate_limit_error' => 0,
+            'break' => false
+        ];
+        switch ($e->getResponse()->getStatusCode()) {
+            case 500:
+            case 503:
+            case 504:
+                $output['server_error'] = 1;
+                break;
+            case 429:
+                $output['rate_limit_error'] = 1;
+                if ($e->getResponse()->hasHeader('Retry-After')) {
+                    sleep($e->getResponse()->getHeaderLine('Retry-After'));
+                    break;
+                }
+                sleep(1);
+                break;
+            default:
+                $output['break'] = true;
+        }
+        return $output;
     }
 
     private function generateFullApiRequestURL($endpoint, $queryParams = []) {
