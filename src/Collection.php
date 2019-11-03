@@ -366,11 +366,11 @@ class Collection implements Iterator, Countable {
                     }
                 }
             }
-        } else {
-            foreach ($this->endpointsSupport[$type] as $endpointRegEx) {
-                if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
-                    return true;
-                }
+            return false;
+        }
+        foreach ($this->endpointsSupport[$type] as $endpointRegEx) {
+            if (preg_match('/' . $endpointRegEx . '/', $this->endpoint)) {
+                return true;
             }
         }
         return false;
