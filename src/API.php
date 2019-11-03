@@ -217,16 +217,16 @@ class API {
     }
 
     /**
-     * @param $e \GuzzleHttp\Exception\RequestException
+     * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
      * @return array
      */
-    private function handleRequestException($e) {
+    private function handleRequestException($guzzleRequestException) {
         $output = [
             'server_error' => 0,
             'rate_limit_error' => 0,
             'break' => false
         ];
-        switch ($e->getResponse()->getStatusCode()) {
+        switch ($guzzleRequestException->getResponse()->getStatusCode()) {
             case 500:
             case 503:
             case 504:
@@ -234,8 +234,8 @@ class API {
                 break;
             case 429:
                 $output['rate_limit_error'] = 1;
-                if ($e->getResponse()->hasHeader('Retry-After')) {
-                    sleep($e->getResponse()->getHeaderLine('Retry-After'));
+                if ($guzzleRequestException->getResponse()->hasHeader('Retry-After')) {
+                    sleep($guzzleRequestException->getResponse()->getHeaderLine('Retry-After'));
                     break;
                 }
                 sleep(1);
