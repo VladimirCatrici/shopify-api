@@ -9,6 +9,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
+use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
+use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
 class API {
      /**
@@ -37,6 +39,10 @@ class API {
      * @var Client
      */
     private $client;
+    /**
+     * @var ResponseDataFormatterInterface
+     */
+    private $responseFormatter;
 
     private $options = [
         /**
@@ -68,7 +74,12 @@ class API {
         /**
          * @var string API version, expecting format is YYYY-MM. By default uses the oldest supported stable version.
          */
-        'api_version' => null
+        'api_version' => null,
+
+        /**
+         * @var string Response data formatter class name
+         */
+        'response_data_formatter' => null
     ];
 
     /**
@@ -99,6 +110,11 @@ class API {
             ]
         ] + $clientOptions);
         $this->setClient($client);
+
+        // Initialize default response data formatter (if necessary)
+        if (empty($this->responseFormatter)) {
+            $this->responseFormatter = new ResponseArrayFormatter();
+        }
     }
 
     /**
@@ -159,38 +175,31 @@ class API {
     private function request($method, $endpoint, $query = [], $data = []) {
         $fullApiRequestURL = $this->generateFullApiRequestURL($endpoint, $query);
 
-        $maxAttemptsOnServerErrors = $this->getOption('max_attempts_on_server_errors');
-        $maxAttemptsOnRateLimitErrors = $this->getOption('max_attempts_on_rate_limit_errors');
+        $maxAttemptsOnServerErrors      = $this->getOption('max_attempts_on_server_errors');
+        $maxAttemptsOnRateLimitErrors   = $this->getOption('max_attempts_on_rate_limit_errors');
+
         $serverErrors = 0;
         $rateLimitErrors = 0;
         $lastException = null;
+        $options = [];
+        if (in_array($method, ['put', 'post']) && !empty($data)) {
+            $options = [
+                'json' => $data
+            ];
+        }
         while ($serverErrors < $maxAttemptsOnServerErrors && $rateLimitErrors < $maxAttemptsOnRateLimitErrors) {
             try {
-                $options = [];
-                if (in_array($method, ['put', 'post']) && !empty($data)) {
-                    $options = [
-                        'json' => $data
-                    ];
-                }
                 /** @noinspection PhpUnhandledExceptionInspection */
                 $response = $this->client->request($method, $fullApiRequestURL, $options);
                 break;
             } catch (\GuzzleHttp\Exception\RequestException $e) {
                 $lastException = new RequestException($this->client, $e);
-                $eResponse = $e->getResponse();
-                $respCode = $eResponse->getStatusCode();
-                if ($respCode >= 500) {
-                    $serverErrors++;
-                } elseif ($respCode == 429) {
-                    $rateLimitErrors++;
-                    if ($eResponse->hasHeader('Retry-After')) {
-                        sleep($eResponse->getHeaderLine('Retry-After'));
-                    } else {
-                        sleep(1);
-                    }
-                } else {
+                $handlerResult = $this->handleRequestException($e);
+                if ($handlerResult['break']) {
                     break;
                 }
+                $serverErrors += $handlerResult['server_error'];
+                $rateLimitErrors += $handlerResult['rate_limit_error'];
             }
         }
 
@@ -204,11 +213,37 @@ class API {
 
         // Response Body
         $body = $response->getBody()->getContents();
-        $body = json_decode($body, true, 512, JSON_BIGINT_AS_STRING);
-        if (is_array($body) && !empty(key($body))) {
-            return $body[key($body)];
+        return $this->responseFormatter->output($body);
+    }
+
+    /**
+     * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
+     * @return array
+     */
+    private function handleRequestException($guzzleRequestException) {
+        $output = [
+            'server_error' => 0,
+            'rate_limit_error' => 0,
+            'break' => false
+        ];
+        switch ($guzzleRequestException->getResponse()->getStatusCode()) {
+            case 500:
+            case 503:
+            case 504:
+                $output['server_error'] = 1;
+                break;
+            case 429:
+                $output['rate_limit_error'] = 1;
+                if ($guzzleRequestException->getResponse()->hasHeader('Retry-After')) {
+                    sleep($guzzleRequestException->getResponse()->getHeaderLine('Retry-After'));
+                    break;
+                }
+                sleep(1);
+                break;
+            default:
+                $output['break'] = true;
         }
-        return $body;
+        return $output;
     }
 
     private function generateFullApiRequestURL($endpoint, $queryParams = []) {
@@ -257,6 +292,10 @@ class API {
             }
         }
 
+        if ($key == 'response_data_formatter') {
+            $this->responseFormatter = new $value();
+        }
+
         $this->options[$key] = $value;
     }
 
@@ -300,7 +339,7 @@ class API {
             if (is_array($this->respHeaders) && array_key_exists($headerKey, $this->respHeaders)) {
                 $this->options['api_version'] = $this->respHeaders[$headerKey][0];
             } else {
-                $this->options['api_version'] = $this->getOldestSupportedVersion();
+                $this->options['api_version'] = static::getOldestSupportedVersion();
             }
         }
         return $this->getOption('api_version');
@@ -311,7 +350,7 @@ class API {
      * @return string
      * @throws Exception
      */
-    public function getOldestSupportedVersion($date = null) {
+    public static function getOldestSupportedVersion($date = null) {
         if (is_string($date)) {
             $dt = new DateTime($date);
         } elseif ($date instanceof DateTime) {

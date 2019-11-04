@@ -34,9 +34,8 @@ class Webhook {
     public static function getData(WebhookDataFormatterInterface $dataFormatter = null) {
         if (empty($dataFormatter)) {
             return !empty(self::$data) ? self::$data : self::$data = static::getInputStream();
-        } else {
-            return $dataFormatter->output(self::getData());
         }
+        return $dataFormatter->output(self::getData());
     }
 
     public static function getDataAsArray() : array {

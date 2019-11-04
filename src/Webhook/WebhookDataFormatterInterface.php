@@ -4,7 +4,9 @@
 namespace VladimirCatrici\Shopify\Webhook;
 
 
-interface WebhookDataFormatterInterface {
+use VladimirCatrici\Shopify\FormatterInterface;
+
+interface WebhookDataFormatterInterface extends FormatterInterface {
     /**
      * @param string $data Webhook data, JSON formatted
      * @return mixed
