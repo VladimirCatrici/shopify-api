@@ -11,13 +11,7 @@ use Exception;
  * @throws Exception
  */
 function getOldestSupportedVersion($date = null) {
-    if (is_string($date)) {
-        $datetime = new DateTime($date);
-    } elseif ($date instanceof DateTime) {
-        $datetime = $date;
-    } else {
-        $datetime = new DateTime();
-    }
+    $datetime = $date instanceof DateTime ? $date : new DateTime($date);
     $datetime->setTimezone(new DateTimeZone('UTC'));
     $currentYearMonth = $datetime->format('Y-m');
     if ($currentYearMonth < '2020-04') {
