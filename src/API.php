@@ -1,8 +1,6 @@
 <?php
 namespace VladimirCatrici\Shopify;
 
-use DateTime;
-use DateTimeZone;
 use Exception;
 use VladimirCatrici\Shopify\Exception\RequestException;
 use GuzzleHttp\Client;
@@ -12,7 +10,7 @@ use Psr\Http\Message\StreamInterface;
 use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
-class API {
+class API implements ClientInterface {
      /**
      * @var string Shopify store handle. If you shop permanent domain is test.myshopify.com - the "test" is the handle
      * in this case
@@ -125,41 +123,41 @@ class API {
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $query
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function get($endpoint, $query = []) {
+    public function get(string $endpoint, array $query = []) {
         return $this->request('get', $endpoint, $query);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $data
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function post($endpoint, $data = []) {
+    public function post(string $endpoint, array $data = []) {
         return $this->request('post', $endpoint, null, $data);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $data
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function put($endpoint, $data = []) {
+    public function put(string $endpoint, array $data = []) {
         return $this->request('put', $endpoint, null, $data);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function delete($endpoint) {
+    public function delete(string $endpoint) {
         return $this->request('delete', $endpoint);
     }/** @noinspection PhpUndefinedClassInspection */
     /** @noinspection PhpDocMissingThrowsInspection */

@@ -4,14 +4,11 @@
 namespace VladimirCatrici\Shopify;
 
 
-use DateTime;
-use DateTimeZone;
-use Exception;
 use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\StreamInterface;
 use VladimirCatrici\Shopify\Exception\RequestException;
 
-class Client {
+class Client implements ClientInterface {
     /**
      * @var ClientConfig
      */
@@ -45,12 +42,12 @@ class Client {
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $query
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function get($endpoint, $query = []) {
+    public function get(string $endpoint, array $query = []) {
         return $this->request('get', $endpoint, $query);
     }
 
@@ -60,7 +57,7 @@ class Client {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function post($endpoint, $data = []) {
+    public function post(string $endpoint, array $data = []) {
         return $this->request('post', $endpoint, null, $data);
     }
 
@@ -70,7 +67,7 @@ class Client {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function put($endpoint, $data = []) {
+    public function put(string $endpoint, array $data = []) {
         return $this->request('put', $endpoint, null, $data);
     }
 
@@ -79,7 +76,7 @@ class Client {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function delete($endpoint) {
+    public function delete(string $endpoint) {
         return $this->request('delete', $endpoint);
     }/** @noinspection PhpUndefinedClassInspection */
     /** @noinspection PhpDocMissingThrowsInspection */
@@ -101,12 +98,10 @@ class Client {
         $serverErrors = 0;
         $rateLimitErrors = 0;
         $lastException = null;
-        $options = [];
-        if (in_array($method, ['put', 'post']) && !empty($data)) {
-            $options = [
-                'json' => $data
-            ];
-        }
+
+        // Set data as a value of `json` attribute if it's a `post` or `put` request.
+        $options = in_array($method, ['put', 'post']) && !empty($data) ? ['json' => $data] : [];
+
         if ($this->config->isSensitivePropertyChanged()) {
             $this->initClient();
             $this->config->setSensitivePropertyChanged(false);
@@ -131,15 +126,9 @@ class Client {
             throw $lastException;
         }
 
-        $this->respCode = $response->getStatusCode();
-        $this->respHeaders = $response->getHeaders();
-        $apiVersionHeaderKey = 'X-Shopify-API-Version';
-        if (is_array($this->respHeaders) && array_key_exists($apiVersionHeaderKey, $this->respHeaders)) {
-            $this->config->setApiVersion($this->respHeaders[$apiVersionHeaderKey][0]);
-        }
-        $this->rateLimitSleepIfNeeded($response);
+        $this->requestCallback($response);
 
-        // Response Body
+        // Format and return response
         $body = $response->getBody()->getContents();
         return $this->config->getResponseFormatter()->output($body);
     }
@@ -172,6 +161,20 @@ class Client {
                 $output['break'] = true;
         }
         return $output;
+    }
+
+    /**
+     * @param Response $response
+     */
+    private function requestCallback(Response $response): void {
+        $this->respCode = $response->getStatusCode();
+        $this->respHeaders = $response->getHeaders();
+        $this->rateLimitSleepIfNeeded($response);
+
+        $apiVersionHeaderKey = 'X-Shopify-API-Version';
+        if (is_array($this->respHeaders) && array_key_exists($apiVersionHeaderKey, $this->respHeaders)) {
+            $this->config->setApiVersion($this->respHeaders[$apiVersionHeaderKey][0]);
+        }
     }
 
     private function generateFullApiRequestURL($endpoint, $queryParams = []) {

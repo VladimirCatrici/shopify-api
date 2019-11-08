@@ -80,16 +80,16 @@ class Collection implements Iterator, Countable {
 
     /**
      * Collection constructor.
-     * @param API $shopify
+     * @param ClientInterface $shopify
      * @param $endpoint
      * @param array $options
-     * @throws RequestException
      * @throws Exception
      */
-    public function __construct(API $shopify, $endpoint, $options = []) {
+    public function __construct(ClientInterface $shopify, $endpoint, $options = []) {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
-        $this->paginationType = (new PaginationType($endpoint, $this->api->getVersion()))->getType();
+        $apiVersion = is_a($this->api, API::class) ? $this->api->getVersion() : $this->api->getConfig()->getApiVersion();
+        $this->paginationType = (new PaginationType($endpoint, $apiVersion))->getType();
 
         if (array_key_exists('limit', $options)) {
             $this->limit = $options['limit'];
