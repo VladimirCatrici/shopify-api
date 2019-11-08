@@ -181,7 +181,7 @@ class ClientConfig {
     public function getApiVersion(): string {
         if (empty($this->apiVersion)) {
             /** @noinspection PhpUnhandledExceptionInspection */
-            return Client::getOldestSupportedVersion();
+            return getOldestSupportedVersion();
         }
         return $this->apiVersion;
     }

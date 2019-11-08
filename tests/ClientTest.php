@@ -13,8 +13,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\ClockMock;
 use VladimirCatrici\Shopify\Client;
 use VladimirCatrici\Shopify\ClientConfig;
-use VladimirCatrici\Shopify\ClientManager;
 use VladimirCatrici\Shopify\Exception\RequestException;
+
+use function VladimirCatrici\Shopify\getOldestSupportedVersion;
 
 class ClientTest extends TestCase {
     /**
@@ -282,7 +283,7 @@ class ClientTest extends TestCase {
         $mock->append(
             new Response(200, ['X-Shopify-API-Version' => $apiVersion], '{"shop": {"id": 1234567890}}')
         );
-        $this->assertEquals(Client::getOldestSupportedVersion(), $api->getConfig()->getApiVersion());
+        $this->assertEquals(getOldestSupportedVersion(), $api->getConfig()->getApiVersion());
         $api->get('shop');
         $this->assertEquals($apiVersion, $api->getConfig()->getApiVersion());
     }
