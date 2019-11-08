@@ -14,7 +14,6 @@ use Symfony\Bridge\PhpUnit\ClockMock;
 use VladimirCatrici\Shopify\Client;
 use VladimirCatrici\Shopify\ClientConfig;
 use VladimirCatrici\Shopify\Exception\RequestException;
-
 use function VladimirCatrici\Shopify\getOldestSupportedVersion;
 
 class ClientTest extends TestCase {
@@ -295,7 +294,7 @@ class ClientTest extends TestCase {
      * @throws Exception
      */
     public function testChoosingCorrectOldestSupportedApiVersion($date, $apiVersionExpected) {
-        $this->assertEquals($apiVersionExpected, self::$client::getOldestSupportedVersion($date));
+        $this->assertEquals($apiVersionExpected, getOldestSupportedVersion($date));
     }
 
     public function testSetConfig() {
@@ -315,9 +314,9 @@ class ClientTest extends TestCase {
         $this->assertSame($newAccessToken, $client->getConfig()->getAccessToken());
         $this->assertSame($newDomain, $client->getConfig()->getPermanentDomain());
         $this->assertSame($newBaseURL, $client->getConfig()->getBaseUrl());
-        $this->assertSame($client::getOldestSupportedVersion(), $client->getConfig()->getApiVersion());
+        $this->assertSame(getOldestSupportedVersion(), $client->getConfig()->getApiVersion());
 
-        $latestStableVersion = $client::getOldestSupportedVersion((new DateTime())->modify('+1 year'));
+        $latestStableVersion = getOldestSupportedVersion((new DateTime())->modify('+1 year'));
         $config->setApiVersion($latestStableVersion);
         $client->setConfig($config);
         $this->assertSame($latestStableVersion, $client->getConfig()->getApiVersion());
@@ -369,7 +368,7 @@ class ClientTest extends TestCase {
         $this->assertArrayHasKey('foo', $guzzleConfig);
         $this->assertSame('bar', $guzzleConfig['foo']);
 
-        $this->assertSame($client::getOldestSupportedVersion(), $client->getConfig()->getApiVersion());
+        $this->assertSame(getOldestSupportedVersion(), $client->getConfig()->getApiVersion());
         $this->assertNotContains('api', $guzzleConfig['base_uri']->getPath());
         $client->getConfig()->setApiVersion('2019-10');
         $client->get('products');
