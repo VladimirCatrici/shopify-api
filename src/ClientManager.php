@@ -46,7 +46,7 @@ class ClientManager {
      * and `headers`
      *
      * @param string $key
-     * @param array $config An associative array with client configuration
+     * @param ClientConfig|array $config An associative array with client configuration
      * @return void
      */
     public static function setConfig(string $key, $config = []) {
@@ -66,9 +66,12 @@ class ClientManager {
                 'Shopify API client configuration not found with such a key: "%s"', $key)
             );
         }
-        if (is_array(self::$clients[$key])) { // Initialize the API client (if necessary)
+        if (is_array(self::$clients[$key])) { // Initialize the client (if necessary)
             $config = self::$clients[$key];
             self::$clients[$key] = new API($config['domain'], $config['access_token'], $config);
+            trigger_error('Configuration with array deprecated, use ClientConfig instead', E_USER_DEPRECATED);
+        } elseif (is_a(self::$clients[$key], ClientConfig::class)) {
+            self::$clients[$key] = new Client(self::$clients[$key]);
         }
         return self::$clients[$key];
     }
