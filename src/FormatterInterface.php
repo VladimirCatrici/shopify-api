@@ -1,10 +1,9 @@
 <?php
 
-
 namespace VladimirCatrici\Shopify;
 
-
-interface FormatterInterface {
+interface FormatterInterface
+{
     /**
      * @param mixed $input
      * @return mixed

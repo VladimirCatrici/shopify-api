@@ -1,4 +1,5 @@
 <?php
+
 namespace VladimirCatrici\Shopify;
 
 use Exception;
@@ -10,8 +11,9 @@ use Psr\Http\Message\StreamInterface;
 use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
-class API implements ClientInterface {
-     /**
+class API implements ClientInterface
+{
+    /**
      * @var string Shopify store handle. If you shop permanent domain is test.myshopify.com - the "test" is the handle
      * in this case
      */
@@ -41,7 +43,6 @@ class API implements ClientInterface {
      * @var ResponseDataFormatterInterface
      */
     private $responseFormatter;
-
     private $options = [
         /**
          * @var int Number of attempts trying to execute the request.
@@ -86,7 +87,8 @@ class API implements ClientInterface {
      * @param string $accessToken
      * @param array $clientOptions GuzzleHttp client options
      */
-    public function __construct(string $domain, string $accessToken, array $clientOptions = []) {
+    public function __construct(string $domain, string $accessToken, array $clientOptions = [])
+    {
         $this->handle = trim(preg_replace('/\.myshopify\.com$/', '', $domain));
         $this->accessToken = $accessToken;
 
@@ -101,12 +103,12 @@ class API implements ClientInterface {
         $this->baseUrl = 'https://' . $this->handle . '.myshopify.com/admin/' . (
             !empty($this->options['api_version']) ? 'api/' . $this->options['api_version'] . '/' : '');
         $client = new Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'X-Shopify-Access-Token' => $this->accessToken
-            ]
-        ] + $clientOptions);
+                'base_uri' => $this->baseUrl,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'X-Shopify-Access-Token' => $this->accessToken
+                ]
+            ] + $clientOptions);
         $this->setClient($client);
 
         // Initialize default response data formatter (if necessary)
@@ -118,7 +120,8 @@ class API implements ClientInterface {
     /**
      * @param Client $client
      */
-    private function setClient($client) {
+    private function setClient($client)
+    {
         $this->client = $client;
     }
 
@@ -128,7 +131,8 @@ class API implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function get(string $endpoint, array $query = []) {
+    public function get(string $endpoint, array $query = [])
+    {
         return $this->request('get', $endpoint, $query);
     }
 
@@ -138,7 +142,8 @@ class API implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function post(string $endpoint, array $data = []) {
+    public function post(string $endpoint, array $data = [])
+    {
         return $this->request('post', $endpoint, null, $data);
     }
 
@@ -148,7 +153,8 @@ class API implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function put(string $endpoint, array $data = []) {
+    public function put(string $endpoint, array $data = [])
+    {
         return $this->request('put', $endpoint, null, $data);
     }
 
@@ -157,12 +163,13 @@ class API implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function delete(string $endpoint) {
+    public function delete(string $endpoint)
+    {
         return $this->request('delete', $endpoint);
-    }/** @noinspection PhpUndefinedClassInspection */
-    /** @noinspection PhpDocMissingThrowsInspection */
+    }
 
     /**
+     * @noinspection PhpDocMissingThrowsInspection
      * @param $method
      * @param $endpoint
      * @param array $query
@@ -170,11 +177,12 @@ class API implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    private function request($method, $endpoint, $query = [], $data = []) {
+    private function request($method, $endpoint, $query = [], $data = [])
+    {
         $fullApiRequestURL = $this->generateFullApiRequestURL($endpoint, $query);
 
-        $maxAttemptsOnServerErrors      = $this->getOption('max_attempts_on_server_errors');
-        $maxAttemptsOnRateLimitErrors   = $this->getOption('max_attempts_on_rate_limit_errors');
+        $maxAttemptsOnServerErrors = $this->getOption('max_attempts_on_server_errors');
+        $maxAttemptsOnRateLimitErrors = $this->getOption('max_attempts_on_rate_limit_errors');
 
         $serverErrors = 0;
         $rateLimitErrors = 0;
@@ -218,7 +226,8 @@ class API implements ClientInterface {
      * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
      * @return array
      */
-    private function handleRequestException($guzzleRequestException) {
+    private function handleRequestException($guzzleRequestException)
+    {
         $output = [
             'server_error' => 0,
             'rate_limit_error' => 0,
@@ -244,7 +253,8 @@ class API implements ClientInterface {
         return $output;
     }
 
-    private function generateFullApiRequestURL($endpoint, $queryParams = []) {
+    private function generateFullApiRequestURL($endpoint, $queryParams = [])
+    {
         if (!preg_match('/\.json$/', $endpoint)) {
             $endpoint .= '.json';
         }
@@ -255,7 +265,8 @@ class API implements ClientInterface {
         return $endpoint;
     }
 
-    private function rateLimitSleepIfNeeded(Response $response) {
+    private function rateLimitSleepIfNeeded(Response $response)
+    {
         if ($response->hasHeader('X-Shopify-Shop-Api-Call-Limit')) {
             $limit = explode('/', $response->getHeaderLine('X-Shopify-Shop-Api-Call-Limit'));
             $rate = $limit[0] / $limit[1];
@@ -265,14 +276,16 @@ class API implements ClientInterface {
         }
     }
 
-    public function getOption($key) {
+    public function getOption($key)
+    {
         if (!array_key_exists($key, $this->options)) {
             throw new InvalidArgumentException(sprintf('Trying to get an invalid option `%s`', $key));
         }
         return $this->options[$key];
     }
 
-    public function setOption($key, $value) {
+    public function setOption($key, $value)
+    {
         if (!array_key_exists($key, $this->options)) {
             throw new InvalidArgumentException(sprintf('Trying to set an invalid option `%s`', $key));
         }
@@ -284,7 +297,11 @@ class API implements ClientInterface {
             // Update client config
             if (!empty($this->client)) {
                 $currentClientConfig = $this->client->getConfig();
-                $this->baseUrl = preg_replace('/admin\/(api\/\d{4}-\d{2}\/)?$/', 'admin/api/' . $value . '/', $this->baseUrl);
+                $this->baseUrl = preg_replace(
+                    '/admin\/(api\/\d{4}-\d{2}\/)?$/',
+                    'admin/api/' . $value . '/',
+                    $this->baseUrl
+                );
                 $currentClientConfig['base_uri'] = $this->baseUrl;
                 $this->setClient(new Client($currentClientConfig));
             }
@@ -297,32 +314,40 @@ class API implements ClientInterface {
         $this->options[$key] = $value;
     }
 
-    private function validateApiVersion($value) {
+    private function validateApiVersion($value)
+    {
         $readMoreAboutApiVersioning = 'Read more about versioning here: https://help.shopify.com/en/api/versioning';
         if (!preg_match('/^(\d{4})-(\d{2})$/', $value, $matches)) {
             throw new InvalidArgumentException(
-                sprintf('Invalid API version format: "%s". The "YYYY-MM" format expected. ' . $readMoreAboutApiVersioning,
-                    $value)
+                sprintf(
+                    'Invalid API version format: "%s". The "YYYY-MM" format expected. ' . $readMoreAboutApiVersioning,
+                    $value
+                )
             );
         }
         if ($matches[1] < 2019) {
             throw new InvalidArgumentException(
-                sprintf('Invalid API version year: "%s". The API versioning has been released in 2019. ' . $readMoreAboutApiVersioning,
-                    $value)
+                sprintf(
+                    'Invalid API version year: "%s". The API versioning has been released in 2019. ' . $readMoreAboutApiVersioning,
+                    $value
+                )
             );
         }
         if (!preg_match('/01|04|07|10/', $matches[2])) {
             throw new InvalidArgumentException(
-                sprintf('Invalid API version month: "%s". 
+                sprintf(
+                    'Invalid API version month: "%s". 
                     The API versioning has been released on April 2019 and new releases scheduled every 3 months, 
                     so only "01", "04", "07" and "10" expected as a month. Otherwise, 
                     "404 Not Found" will be returned by Shopify. ' . $readMoreAboutApiVersioning,
-                        $matches[0])
+                    $matches[0]
+                )
             );
         }
     }
 
-    public function setVersion($version) {
+    public function setVersion($version)
+    {
         $this->setOption('api_version', $version);
     }
 
@@ -330,7 +355,8 @@ class API implements ClientInterface {
      * @return string
      * @throws Exception
      */
-    public function getVersion() {
+    public function getVersion()
+    {
         $version = $this->getOption('api_version');
         if (empty($version)) {
             $headerKey = 'X-Shopify-API-Version';
@@ -348,7 +374,8 @@ class API implements ClientInterface {
      * @return string
      * @throws Exception
      */
-    public static function getOldestSupportedVersion($date = null) {
+    public static function getOldestSupportedVersion($date = null)
+    {
         return getOldestSupportedVersion($date);
     }
 }

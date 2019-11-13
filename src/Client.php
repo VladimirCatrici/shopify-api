@@ -1,14 +1,13 @@
 <?php
 
-
 namespace VladimirCatrici\Shopify;
-
 
 use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\StreamInterface;
 use VladimirCatrici\Shopify\Exception\RequestException;
 
-class Client implements ClientInterface {
+class Client implements ClientInterface
+{
     /**
      * @var ClientConfig
      */
@@ -26,19 +25,21 @@ class Client implements ClientInterface {
      */
     public $respHeaders;
 
-    public function __construct(ClientConfig $config) {
+    public function __construct(ClientConfig $config)
+    {
         $this->config = $config;
         $this->initClient();
     }
 
-    private function initClient(): void {
+    private function initClient(): void
+    {
         $this->client = new \GuzzleHttp\Client([
-            'base_uri' => $this->config->getBaseUrl(),
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'X-Shopify-Access-Token' => $this->config->getAccessToken()
-            ]
-        ] + $this->config->getHttpClientOptions());
+                'base_uri' => $this->config->getBaseUrl(),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'X-Shopify-Access-Token' => $this->config->getAccessToken()
+                ]
+            ] + $this->config->getHttpClientOptions());
     }
 
     /**
@@ -47,7 +48,8 @@ class Client implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function get(string $endpoint, array $query = []) {
+    public function get(string $endpoint, array $query = [])
+    {
         return $this->request('get', $endpoint, $query);
     }
 
@@ -57,7 +59,8 @@ class Client implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function post(string $endpoint, array $data = []) {
+    public function post(string $endpoint, array $data = [])
+    {
         return $this->request('post', $endpoint, null, $data);
     }
 
@@ -67,7 +70,8 @@ class Client implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function put(string $endpoint, array $data = []) {
+    public function put(string $endpoint, array $data = [])
+    {
         return $this->request('put', $endpoint, null, $data);
     }
 
@@ -76,12 +80,13 @@ class Client implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function delete(string $endpoint) {
+    public function delete(string $endpoint)
+    {
         return $this->request('delete', $endpoint);
-    }/** @noinspection PhpUndefinedClassInspection */
-    /** @noinspection PhpDocMissingThrowsInspection */
+    }
 
     /**
+     * @noinspection PhpDocMissingThrowsInspection
      * @param $method
      * @param $endpoint
      * @param array $query
@@ -89,11 +94,12 @@ class Client implements ClientInterface {
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    private function request($method, $endpoint, $query = [], $data = []) {
+    private function request($method, $endpoint, $query = [], $data = [])
+    {
         $fullApiRequestURL = $this->generateFullApiRequestURL($endpoint, $query);
 
-        $maxAttemptsOnServerErrors      = $this->config->getMaxAttemptsOnServerErrors();
-        $maxAttemptsOnRateLimitErrors   = $this->config->getMaxAttemptsOnRateLimitErrors();
+        $maxAttemptsOnServerErrors = $this->config->getMaxAttemptsOnServerErrors();
+        $maxAttemptsOnRateLimitErrors = $this->config->getMaxAttemptsOnRateLimitErrors();
 
         $serverErrors = 0;
         $rateLimitErrors = 0;
@@ -137,7 +143,8 @@ class Client implements ClientInterface {
      * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
      * @return array
      */
-    private function handleRequestException($guzzleRequestException) {
+    private function handleRequestException($guzzleRequestException)
+    {
         $output = [
             'server_error' => 0,
             'rate_limit_error' => 0,
@@ -166,7 +173,8 @@ class Client implements ClientInterface {
     /**
      * @param Response $response
      */
-    private function requestCallback(Response $response): void {
+    private function requestCallback(Response $response): void
+    {
         $this->respCode = $response->getStatusCode();
         $this->respHeaders = $response->getHeaders();
         $this->rateLimitSleepIfNeeded($response);
@@ -177,7 +185,8 @@ class Client implements ClientInterface {
         }
     }
 
-    private function generateFullApiRequestURL($endpoint, $queryParams = []) {
+    private function generateFullApiRequestURL($endpoint, $queryParams = [])
+    {
         if (!preg_match('/\.json$/', $endpoint)) {
             $endpoint .= '.json';
         }
@@ -188,7 +197,8 @@ class Client implements ClientInterface {
         return $endpoint;
     }
 
-    private function rateLimitSleepIfNeeded(Response $response) {
+    private function rateLimitSleepIfNeeded(Response $response)
+    {
         if ($response->hasHeader('X-Shopify-Shop-Api-Call-Limit')) {
             $limit = explode('/', $response->getHeaderLine('X-Shopify-Shop-Api-Call-Limit'));
             $rate = $limit[0] / $limit[1];

@@ -1,4 +1,5 @@
 <?php
+
 namespace VladimirCatrici\Shopify;
 
 use BadMethodCallException;
@@ -7,16 +8,12 @@ use Exception;
 use Iterator;
 use VladimirCatrici\Shopify\Exception\RequestException;
 
-class Collection implements Iterator, Countable {
-
+class Collection implements Iterator, Countable
+{
     private $endpoint;
-
     private $options;
-
     private $api;
-
     private $limit = 250;
-
     private $page = 1;
     /**
      * @var string A unique ID used to access a certain page of results. The page_info parameter can't be modified and
@@ -25,22 +22,15 @@ class Collection implements Iterator, Countable {
      * Link: "<https://{shop}.myshopify.com/admin/api/2019-07/products.json?page_info=hijgklmn&limit=3>; rel=next"
      */
     private $nextPageInfo;
-
     private $items = [];
-
     private $chunkCount;
-
     private $partIndex = 0;
-
     private $count;
-
     private $currentIndex = 0;
-
     /**
      * @var PaginationType
      */
     private $paginationType;
-
     private $endpointsSupport = [
         // `count` endpoint available
         'count' => [
@@ -85,10 +75,14 @@ class Collection implements Iterator, Countable {
      * @param array $options
      * @throws Exception
      */
-    public function __construct(ClientInterface $shopify, $endpoint, $options = []) {
+    public function __construct(ClientInterface $shopify, $endpoint, $options = [])
+    {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
-        $apiVersion = is_a($this->api, API::class) ? $this->api->getVersion() : $this->api->getConfig()->getApiVersion();
+        $apiVersion = is_a(
+            $this->api,
+            API::class
+        ) ? $this->api->getVersion() : $this->api->getConfig()->getApiVersion();
         $this->paginationType = (new PaginationType($endpoint, $apiVersion))->getType();
 
         if (array_key_exists('limit', $options)) {
@@ -116,18 +110,21 @@ class Collection implements Iterator, Countable {
     /**
      * @return array
      */
-    public function current() {
+    public function current()
+    {
         return $this->items[$this->partIndex];
     }
 
-    public function key() {
+    public function key()
+    {
         return $this->currentIndex;
     }
 
     /**
      * @throws RequestException
      */
-    public function next() {
+    public function next()
+    {
         $this->partIndex++;
         if ($this->partIndex == $this->chunkCount) {
             $this->page++;
@@ -152,31 +149,35 @@ class Collection implements Iterator, Countable {
     /**
      * @throws RequestException
      */
-    public function rewind() {
+    public function rewind()
+    {
         $this->page = 1;
         $this->fetch();
         $this->currentIndex = 0;
     }
 
-    public function valid() {
+    public function valid()
+    {
         return isset($this->items[$this->partIndex]);
     }
 
     /**
      * @return int
      */
-    public function count() {
+    public function count()
+    {
         if ($this->count === null) {
             throw new BadMethodCallException('This endpoint does not support "count" operation');
         }
-       return $this->count;
+        return $this->count;
     }
 
     /**
      * Fetches Shopify items based on current parameters like page, limit and options specified on object creation
      * @throws RequestException
      */
-    private function fetch() {
+    private function fetch()
+    {
         $options = [
             'limit' => $this->limit
         ];
@@ -210,7 +211,8 @@ class Collection implements Iterator, Countable {
         }
     }
 
-    private function updateNextPageInfo() {
+    private function updateNextPageInfo()
+    {
         if (!array_key_exists('Link', $this->api->respHeaders)) { // All results on the same page
             $this->nextPageInfo = null;
             return;

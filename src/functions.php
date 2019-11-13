@@ -1,4 +1,5 @@
 <?php
+
 namespace VladimirCatrici\Shopify;
 
 use DateTime;
@@ -10,7 +11,8 @@ use Exception;
  * @return string
  * @throws Exception
  */
-function getOldestSupportedVersion($date = null) {
+function getOldestSupportedVersion($date = null)
+{
     $datetime = $date instanceof DateTime ? $date : new DateTime($date);
     $datetime->setTimezone(new DateTimeZone('UTC'));
     $currentYearMonth = $datetime->format('Y-m');
@@ -22,10 +24,18 @@ function getOldestSupportedVersion($date = null) {
     $currentMonth = $currentYearMonthParts[1];
 
     $monthMapping = [
-        '01' => '04', '02' => '04', '03' => '04',
-        '04' => '07', '05' => '07', '06' => '07',
-        '07' => '10', '08' => '10', '09' => '10',
-        '10' => '01', '11' => '01', '12' => '01'
+        '01' => '04',
+        '02' => '04',
+        '03' => '04',
+        '04' => '07',
+        '05' => '07',
+        '06' => '07',
+        '07' => '10',
+        '08' => '10',
+        '09' => '10',
+        '10' => '01',
+        '11' => '01',
+        '12' => '01'
     ];
     $returnMonth = $monthMapping[$currentMonth];
 

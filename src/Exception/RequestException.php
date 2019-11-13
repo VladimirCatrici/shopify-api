@@ -7,7 +7,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
-class RequestException extends Exception {
+class RequestException extends Exception
+{
     /**
      * @var Client
      */
@@ -26,7 +27,8 @@ class RequestException extends Exception {
      * @param Client $client
      * @param \GuzzleHttp\Exception\RequestException $previous
      */
-    public function __construct(Client $client, $previous = null) {
+    public function __construct(Client $client, $previous = null)
+    {
         $this->client = $client;
         $this->request = $previous->getRequest();
         $this->response = $previous->getResponse();
@@ -36,14 +38,16 @@ class RequestException extends Exception {
     /**
      * @return Response
      */
-    public function getResponse() {
+    public function getResponse()
+    {
         return $this->response;
     }
 
     /**
      * @return string
      */
-    public function getDetailsJson() {
+    public function getDetailsJson()
+    {
         $output = [
             'msg' => parent::getPrevious()->getMessage(),
             'request' => $this->request

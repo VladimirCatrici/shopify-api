@@ -1,13 +1,11 @@
 <?php
 
-
 namespace VladimirCatrici\Shopify;
-
 
 use InvalidArgumentException;
 
-class ClientManager {
-
+class ClientManager
+{
     /**
      * This variable contains a list of configurations (array) or initialized clients (instance of API).
      * Array configuration is kept unless the API client is requested by get() method.
@@ -49,7 +47,8 @@ class ClientManager {
      * @param ClientConfig|array $config An associative array with client configuration
      * @return void
      */
-    public static function setConfig(string $key, $config = []) {
+    public static function setConfig(string $key, $config = [])
+    {
         self::$clients[$key] = $config;
     }
 
@@ -60,11 +59,13 @@ class ClientManager {
      * @return API
      * @throws InvalidArgumentException
      */
-    public static function get($key) {
+    public static function get($key)
+    {
         if (!isset(self::$clients[$key])) {
             throw new InvalidArgumentException(sprintf(
-                'Shopify API client configuration not found with such a key: "%s"', $key)
-            );
+                'Shopify API client configuration not found with such a key: "%s"',
+                $key
+            ));
         }
         if (is_array(self::$clients[$key])) { // Initialize the client (if necessary)
             $config = self::$clients[$key];

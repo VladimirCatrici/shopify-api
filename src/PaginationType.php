@@ -4,7 +4,8 @@ namespace VladimirCatrici\Shopify;
 
 use Exception;
 
-class PaginationType {
+class PaginationType
+{
     public const NOT_REQUIRED = 0;
     public const CURSOR = 1;
     public const SINCE = 2;
@@ -13,7 +14,6 @@ class PaginationType {
      * @var int
      */
     private $type;
-
     private $endpointsSupport = [
         // `since_id` pagination available
         PaginationType::SINCE => [
@@ -120,7 +120,8 @@ class PaginationType {
      * @param $apiVersion
      * @throws Exception
      */
-    public function __construct($endpoint, $apiVersion = null) {
+    public function __construct($endpoint, $apiVersion = null)
+    {
         if ($this->supportsPagination(PaginationType::NOT_REQUIRED, $endpoint)) {
             $this->type = PaginationType::NOT_REQUIRED;
             return;
@@ -147,7 +148,8 @@ class PaginationType {
     /**
      * @return int
      */
-    public function getType(): int {
+    public function getType(): int
+    {
         return $this->type;
     }
 
@@ -156,7 +158,8 @@ class PaginationType {
      * @return bool
      * @throws Exception
      */
-    private function supportsPagination(int $type, $endpoint, $apiVersion = null) {
+    private function supportsPagination(int $type, $endpoint, $apiVersion = null)
+    {
         if ($type == PaginationType::CURSOR) {
             if ($apiVersion >= '2019-07') {
                 foreach ($this->endpointsSupport[PaginationType::CURSOR] as $version => $endpointsRegEx) {
