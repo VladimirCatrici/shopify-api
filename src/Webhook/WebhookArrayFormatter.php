@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify\Webhook;
 
 class WebhookArrayFormatter implements WebhookDataFormatterInterface

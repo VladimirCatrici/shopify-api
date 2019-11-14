@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use GuzzleHttp\Psr7\Response;
@@ -143,7 +145,7 @@ class Client implements ClientInterface
      * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
      * @return array
      */
-    private function handleRequestException($guzzleRequestException)
+    private function handleRequestException($guzzleRequestException): array
     {
         $output = [
             'server_error' => 0,
@@ -185,7 +187,7 @@ class Client implements ClientInterface
         }
     }
 
-    private function generateFullApiRequestURL($endpoint, $queryParams = [])
+    private function generateFullApiRequestURL($endpoint, $queryParams = []): string
     {
         if (!preg_match('/\.json$/', $endpoint)) {
             $endpoint .= '.json';
@@ -197,7 +199,7 @@ class Client implements ClientInterface
         return $endpoint;
     }
 
-    private function rateLimitSleepIfNeeded(Response $response)
+    private function rateLimitSleepIfNeeded(Response $response): void
     {
         if ($response->hasHeader('X-Shopify-Shop-Api-Call-Limit')) {
             $limit = explode('/', $response->getHeaderLine('X-Shopify-Shop-Api-Call-Limit'));

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use DateTime;
@@ -11,7 +13,7 @@ use Exception;
  * @return string
  * @throws Exception
  */
-function getOldestSupportedVersion($date = null)
+function getOldestSupportedVersion($date = null): string
 {
     $datetime = $date instanceof DateTime ? $date : new DateTime($date);
     $datetime->setTimezone(new DateTimeZone('UTC'));

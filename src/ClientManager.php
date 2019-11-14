@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use InvalidArgumentException;
@@ -47,7 +49,7 @@ class ClientManager
      * @param ClientConfig|array $config An associative array with client configuration
      * @return void
      */
-    public static function setConfig(string $key, $config = [])
+    public static function setConfig(string $key, $config = []): void
     {
         self::$clients[$key] = $config;
     }
@@ -56,10 +58,10 @@ class ClientManager
      * Returns a configured Shopify API client
      *
      * @param $key
-     * @return API
+     * @return ClientInterface
      * @throws InvalidArgumentException
      */
-    public static function get($key)
+    public static function get($key): ClientInterface
     {
         if (!isset(self::$clients[$key])) {
             throw new InvalidArgumentException(sprintf(
