@@ -47,7 +47,7 @@ class Client implements ClientInterface
     /**
      * @param string $endpoint
      * @param array $query
-     * @return mixed|StreamInterface
+     * @return mixed
      * @throws RequestException
      */
     public function get(string $endpoint, array $query = [])
@@ -58,7 +58,7 @@ class Client implements ClientInterface
     /**
      * @param $endpoint
      * @param array $data
-     * @return mixed|StreamInterface
+     * @return mixed
      * @throws RequestException
      */
     public function post(string $endpoint, array $data = [])
@@ -69,7 +69,7 @@ class Client implements ClientInterface
     /**
      * @param $endpoint
      * @param array $data
-     * @return mixed|StreamInterface
+     * @return mixed
      * @throws RequestException
      */
     public function put(string $endpoint, array $data = [])
@@ -79,7 +79,7 @@ class Client implements ClientInterface
 
     /**
      * @param $endpoint
-     * @return mixed|StreamInterface
+     * @return mixed
      * @throws RequestException
      */
     public function delete(string $endpoint)
@@ -93,7 +93,7 @@ class Client implements ClientInterface
      * @param $endpoint
      * @param array $query
      * @param array $data
-     * @return mixed|StreamInterface
+     * @return mixed
      * @throws RequestException
      */
     private function request($method, $endpoint, $query = [], $data = [])

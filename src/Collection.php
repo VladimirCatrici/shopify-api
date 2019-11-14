@@ -122,9 +122,6 @@ class Collection implements Iterator, Countable
         return $this->currentIndex;
     }
 
-    /**
-     * @throws RequestException
-     */
     public function next()
     {
         $this->partIndex++;
@@ -148,9 +145,6 @@ class Collection implements Iterator, Countable
         $this->currentIndex++;
     }
 
-    /**
-     * @throws RequestException
-     */
     public function rewind()
     {
         $this->page = 1;
@@ -176,7 +170,6 @@ class Collection implements Iterator, Countable
 
     /**
      * Fetches Shopify items based on current parameters like page, limit and options specified on object creation
-     * @throws RequestException
      */
     private function fetch()
     {

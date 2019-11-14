@@ -157,8 +157,9 @@ class PaginationType
 
     /**
      * @param int $type Pagination type const e.g. PaginationType::CURSOR or PaginationType::SINCE
+     * @param $endpoint
+     * @param null $apiVersion
      * @return bool
-     * @throws Exception
      */
     private function supportsPagination(int $type, string $endpoint, $apiVersion = null): bool
     {
