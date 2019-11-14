@@ -13,7 +13,7 @@ use Exception;
  * @return string
  * @throws Exception
  */
-function getOldestSupportedVersion($date = null): string
+function getOldestSupportedVersion($date = ''): string
 {
     $datetime = $date instanceof DateTime ? $date : new DateTime($date);
     $datetime->setTimezone(new DateTimeZone('UTC'));

@@ -34,7 +34,9 @@ class RequestException extends Exception
         $this->client = $client;
         $this->request = $previous->getRequest();
         $this->response = $previous->getResponse();
-        parent::__construct($this->response->getBody(), $this->response->getStatusCode(), $previous);
+        $body = $this->response->getBody();
+        $body->seek(0);
+        parent::__construct($body->getContents(), $this->response->getStatusCode(), $previous);
     }
 
     /**

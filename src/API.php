@@ -379,7 +379,7 @@ class API implements ClientInterface
      * @return string
      * @throws Exception
      */
-    public static function getOldestSupportedVersion($date = null)
+    public static function getOldestSupportedVersion($date = '')
     {
         return getOldestSupportedVersion($date);
     }
