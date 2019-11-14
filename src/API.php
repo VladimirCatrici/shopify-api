@@ -11,6 +11,11 @@ use Psr\Http\Message\StreamInterface;
 use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
+/**
+ * Class API
+ * @package VladimirCatrici\Shopify
+ * @deprecated This class is deprecated since v0.2.0 and will be removed in v0.3.0. Use Client class instead
+ */
 class API implements ClientInterface
 {
     /**
