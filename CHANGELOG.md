@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #Added
 -   Client class added as a replacement of the API class 
 -   ClientConfig added to configure new Shopify API client
--   Option to set up response data formatter. ResponseArrayFormatter added and used by default
+-   Option to set up response data formatter. ResponseDefaultFormatter added and used by default
+-   Declaring strict types
 
 ### Deprecated
 -   API class deprecated, use Client instead
