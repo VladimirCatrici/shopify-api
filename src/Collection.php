@@ -8,7 +8,6 @@ use BadMethodCallException;
 use Countable;
 use Exception;
 use Iterator;
-use VladimirCatrici\Shopify\Exception\RequestException;
 
 class Collection implements Iterator, Countable
 {
@@ -84,7 +83,9 @@ class Collection implements Iterator, Countable
         $apiVersion = is_a(
             $this->api,
             API::class
-        ) ? $this->api->getVersion() : $this->api->getConfig()->getApiVersion();
+        ) ? $this->api->getVersion() :
+            (method_exists($this->api, 'getConfig') && method_exists($this->api->getConfig(), 'getApiVersion') ?
+                $this->api->getConfig()->getApiVersion() : getOldestSupportedVersion());
         $this->paginationType = (new PaginationType($endpoint, $apiVersion))->getType();
 
         if (array_key_exists('limit', $options)) {
