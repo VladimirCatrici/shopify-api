@@ -50,7 +50,7 @@ See `max_limit_rate_sleep_sec` option.
 -   `maxLimitRateSleepSeconds` (default: `1`)  
 Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate` option.
 
--   `responseFormatter` (default: instance of `ResponseArrayFormatter`)  
+-   `responseFormatter` (default: instance of `ResponseDefaultFormatter`)  
 You can create and set up another data formatter for response you're getting from Shopify.
 Your formatter should implement simple `ResponseDataFormatterInterface`. 
 

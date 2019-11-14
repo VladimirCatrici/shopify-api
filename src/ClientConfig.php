@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use InvalidArgumentException;
-use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
+use VladimirCatrici\Shopify\Response\ResponseDefaultFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
 /**
@@ -75,7 +77,7 @@ class ClientConfig
         }
         $this->setHandle($options['handle'] ?? '');
         if (empty($this->responseFormatter)) {
-            $this->setResponseFormatter(new ResponseArrayFormatter());
+            $this->setResponseFormatter(new ResponseDefaultFormatter());
         }
     }
 
@@ -302,7 +304,8 @@ class ClientConfig
         if ($matches[1] < 2019) {
             throw new InvalidArgumentException(
                 sprintf(
-                    'Invalid API version year: "%s". The API versioning has been released in 2019. ' . $readMoreAboutApiVersioning,
+                    'Invalid API version year: "%s". The API versioning has been released in 2019. ' .
+                    $readMoreAboutApiVersioning,
                     $apiVersion
                 )
             );

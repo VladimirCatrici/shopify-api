@@ -8,7 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
-use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
+use VladimirCatrici\Shopify\Response\ResponseDefaultFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
 /**
@@ -118,7 +118,7 @@ class API implements ClientInterface
 
         // Initialize default response data formatter (if necessary)
         if (empty($this->responseFormatter)) {
-            $this->responseFormatter = new ResponseArrayFormatter();
+            $this->responseFormatter = new ResponseDefaultFormatter();
         }
     }
 

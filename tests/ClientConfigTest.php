@@ -3,7 +3,7 @@ namespace ShopifyAPI\Tests;
 
 use PHPUnit\Framework\TestCase;
 use VladimirCatrici\Shopify\ClientConfig;
-use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
+use VladimirCatrici\Shopify\Response\ResponseDefaultFormatter;
 
 
 class ClientConfigTest extends TestCase {
@@ -64,7 +64,7 @@ class ClientConfigTest extends TestCase {
         $this->assertSame('2019-10', self::$cfg->getApiVersion());
         $this->assertSame(0.75, self::$cfg->getMaxLimitRate());
         $this->assertSame(2, self::$cfg->getMaxLimitRateSleepSeconds());
-        $this->assertInstanceOf(ResponseArrayFormatter::class, self::$cfg->getResponseFormatter());
+        $this->assertInstanceOf(ResponseDefaultFormatter::class, self::$cfg->getResponseFormatter());
     }
 
     public function testChangingConfigOption() {
