@@ -6,12 +6,12 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 
-class RequestException extends Exception {
+class RequestException extends Exception
+{
     /**
      * @var Client
      */
     private $client;
-
     /**
      * @var Response
      */
@@ -22,7 +22,8 @@ class RequestException extends Exception {
      * @param Client $client
      * @param \GuzzleHttp\Exception\RequestException $previous
      */
-    public function __construct(Client $client, $previous = null) {
+    public function __construct(Client $client, $previous = null)
+    {
         $this->client = $client;
         if (method_exists($previous, 'getResponse')) {
             $this->response = $previous->getResponse();
@@ -33,14 +34,16 @@ class RequestException extends Exception {
     /**
      * @return Response
      */
-    public function getResponse() {
+    public function getResponse()
+    {
         return $this->response;
     }
 
     /**
      * @return string
      */
-    public function getDetailsJson() {
+    public function getDetailsJson()
+    {
         $output = [
             'msg' => parent::getPrevious()->getMessage(),
             'request' => $this->client->getConfig()

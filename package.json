@@ -14,7 +14,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint-md": "remark README.md"
+    "lint-md": "remark README.md CHANGELOG.md"
   },
   "repository": {
     "type": "git",
