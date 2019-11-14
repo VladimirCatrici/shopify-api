@@ -14,10 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 -   API class deprecated, use Client instead
 
-## 0.1.4 - 2019-10-30
-### Added
--   Webhook processing
-
-## 0.1.3 - 2019-10-09
+## 0.1.0 - 2019-11-04
 ### Added
 -   Initial release
