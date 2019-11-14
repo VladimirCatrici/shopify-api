@@ -74,6 +74,19 @@ class ClientTest extends TestCase {
     /**
      * @throws RequestException
      */
+    public function testCount() {
+        self::$mock->append(
+            new Response(200, [], '{"count": 10}')
+        );
+
+        // Check JSON decoding
+        $count = self::$client->get('products/count');
+        $this->assertSame(10, $count);
+    }
+
+    /**
+     * @throws RequestException
+     */
     public function testPost() {
         self::$mock->append(
             new Response(201, [], '{"product": {"id": 1234567890, "title": "Test"}}')
