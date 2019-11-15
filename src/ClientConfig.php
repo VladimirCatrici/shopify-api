@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace VladimirCatrici\Shopify;
 
+use ArrayAccess;
 use InvalidArgumentException;
 use VladimirCatrici\Shopify\Response\ResponseDefaultFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
@@ -12,24 +13,24 @@ use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
  * Class ClientConfig
  * @package VladimirCatrici\Shopify
  */
-class ClientConfig
+class ClientConfig implements ArrayAccess
 {
     /**
      * @var string
      */
-    private $handle;
+    private $handle = '';
     /**
      * @var string
      */
-    private $permanentDomain;
+    private $permanentDomain = '';
     /**
      * @var string
      */
-    private $baseUrl;
+    private $baseUrl = '';
     /**
      * @var string
      */
-    private $accessToken;
+    private $accessToken = '';
     /**
      * @var int
      */
@@ -337,5 +338,68 @@ class ClientConfig
     public function setSensitivePropertyChanged(bool $sensitivePropertyChanged): void
     {
         $this->sensitivePropertyChanged = $sensitivePropertyChanged;
+    }
+
+    /**
+     * Whether a offset exists
+     * @link https://php.net/manual/en/arrayaccess.offsetexists.php
+     * @param mixed $offset <p>
+     * An offset to check for.
+     * </p>
+     * @return bool true on success or false on failure.
+     * </p>
+     * <p>
+     * The return value will be casted to boolean if non-boolean was returned.
+     * @since 5.0.0
+     */
+    public function offsetExists($offset)
+    {
+        return property_exists($this, $offset);
+    }
+
+    /**
+     * Offset to retrieve
+     * @link https://php.net/manual/en/arrayaccess.offsetget.php
+     * @param mixed $offset <p>
+     * The offset to retrieve.
+     * </p>
+     * @return mixed Can return all value types.
+     * @since 5.0.0
+     */
+    public function offsetGet($offset)
+    {
+        return $this->{'get' . ucfirst($offset)}();
+    }
+
+    /**
+     * Offset to set
+     * @link https://php.net/manual/en/arrayaccess.offsetset.php
+     * @param mixed $offset <p>
+     * The offset to assign the value to.
+     * </p>
+     * @param mixed $value <p>
+     * The value to set.
+     * </p>
+     * @return void
+     * @since 5.0.0
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->{'set' . ucfirst($offset)}($value);
+    }
+
+    /**
+     * Offset to unset
+     * @link https://php.net/manual/en/arrayaccess.offsetunset.php
+     * @param mixed $offset <p>
+     * The offset to unset.
+     * </p>
+     * @return void
+     * @since 5.0.0
+     */
+    public function offsetUnset($offset)
+    {
+        $props = get_class_vars(ClientConfig::class);
+        $this->{'set' . ucfirst($offset)}($props[$offset]);
     }
 }
