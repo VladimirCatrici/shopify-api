@@ -30,15 +30,12 @@ class ClientTest extends TestCase {
         self::$mock = new MockHandler();
         $handler = HandlerStack::create(self::$mock);
         ClockMock::register(API::class);
-        self::$client = new Client(new ClientConfig([
+        self::$client = new ClientTestDouble(new ClientConfig([
             'handle' => 'test-domain',
             'accessToken' => 'test-token',
             'maxAttemptsOnServerErrors' => 1,
-            'maxAttemptsOnRateLimitErrors' => 10,
-            'httpClientOptions' => [
-                'handler' => $handler
-            ]
-        ]));
+            'maxAttemptsOnRateLimitErrors' => 10
+        ]), $handler);
     }
 
     public function testConstructor() {
@@ -264,14 +261,11 @@ class ClientTest extends TestCase {
         $apiVersion = '2019-04';
         $mock = new MockHandler();
         $handler = HandlerStack::create($mock);
-        $api = new Client(new ClientConfig([
+        $api = new ClientTestDouble(new ClientConfig([
             'handle' => 'test',
             'accessToken' => 'test',
             'apiVersion' => $apiVersion,
-            'httpClientOptions' => [
-                'handler' => $handler
-            ]
-        ]));
+        ]), $handler);
         $api->getConfig()->setApiVersion($validApiVersion);
         $this->assertEquals($validApiVersion, $api->getConfig()->getApiVersion());
         $mock->append(new Response(200, [], '{}'));
@@ -284,13 +278,10 @@ class ClientTest extends TestCase {
     public function testGettingShopifyApiVersionWithoutSettingItWithConstructor() {
         $mock = new MockHandler();
         $handler = HandlerStack::create($mock);
-        $api = new Client(new ClientConfig([
+        $api = new ClientTestDouble(new ClientConfig([
             'handle' => 'test',
-            'accessToken' => 'test',
-            'httpClientOptions' => [
-                'handler' => $handler
-            ]
-        ]));
+            'accessToken' => 'test'
+        ]), $handler);
         $apiVersion = '2019-07';
         $mock->append(
             new Response(200, ['X-Shopify-API-Version' => $apiVersion], '{"shop": {"id": 1234567890}}')
@@ -345,9 +336,6 @@ class ClientTest extends TestCase {
         $config = new ClientConfig([
             'handle' => 'test-handle',
             'accessToken' => 'test-access-token',
-            'httpClientOptions' => [
-                'handler' => $handler
-            ]
         ]);
         $mock->append(
             new Response(200, [], '{}'),
@@ -355,7 +343,7 @@ class ClientTest extends TestCase {
             new Response(200, [], '{}'),
             new Response(200, [], '{}')
         );
-        $client = new ClientTestDouble($config);
+        $client = new ClientTestDouble($config, $handler);
         $this->assertSame('test-handle.myshopify.com', $client->getConfig()->getPermanentDomain());
         $config->setHandle('test-handle-2');
         $client->get('blah');
@@ -370,17 +358,6 @@ class ClientTest extends TestCase {
         $guzzleClient = $client->getGuzzleClient();
         $guzzleConfig = $guzzleClient->getConfig();
         $this->assertSame('new-access-token', $guzzleConfig['headers']['X-Shopify-Access-Token']);
-
-        $config->setHttpClientOptions([
-            'handler' => $handler,
-            'foo' => 'bar'
-        ]);
-        $client->get('blah');
-        $guzzleClient = $client->getGuzzleClient();
-        $guzzleConfig = $guzzleClient->getConfig();
-        $this->assertArrayHasKey('foo', $guzzleConfig);
-        $this->assertSame('bar', $guzzleConfig['foo']);
-
         $this->assertSame(getOldestSupportedVersion(), $client->getConfig()->getApiVersion());
         $this->assertNotContains('api', $guzzleConfig['base_uri']->getPath());
         $client->getConfig()->setApiVersion('2019-10');

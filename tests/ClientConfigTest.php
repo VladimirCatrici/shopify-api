@@ -84,17 +84,13 @@ class ClientConfigTest extends TestCase
             ->setApiVersion('2019-07')
             ->setMaxLimitRate(0.95)
             ->setMaxLimitRateSleepSeconds(3)
-            ->setResponseFormatter(new TestResponseDataFormatter())
-            ->setHttpClientOptions([
-                'http_errors' => false
-            ]);
+            ->setResponseFormatter(new TestResponseDataFormatter());
         $this->assertSame(100, self::$cfg->getMaxAttemptsOnServerErrors());
         $this->assertSame(200, self::$cfg->getMaxAttemptsOnRateLimitErrors());
         $this->assertSame('2019-07', self::$cfg->getApiVersion());
         $this->assertSame(0.95, self::$cfg->getMaxLimitRate());
         $this->assertSame(3, self::$cfg->getMaxLimitRateSleepSeconds());
         $this->assertInstanceOf(TestResponseDataFormatter::class, self::$cfg->getResponseFormatter());
-        $this->assertArraySubset(['http_errors' => false], self::$cfg->getHttpClientOptions());
     }
 
     public function testConstructorThrowErrorsWhenInvalidConfigurationOptionPassed()

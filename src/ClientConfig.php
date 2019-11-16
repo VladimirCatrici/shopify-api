@@ -56,10 +56,13 @@ class ClientConfig implements ArrayAccess
      */
     private $responseFormatter;
     /**
-     * @var array
+     * @var bool
      */
-    private $httpClientOptions = [];
     protected $sensitivePropertyChanged = false;
+    /**
+     * @var Handle
+     */
+    private $handler;
 
     /**
      * ClientConfig constructor.
@@ -264,27 +267,6 @@ class ClientConfig implements ArrayAccess
     public function setResponseFormatter(ResponseDataFormatterInterface $responseFormatter): self
     {
         $this->responseFormatter = $responseFormatter;
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getHttpClientOptions(): array
-    {
-        return $this->httpClientOptions;
-    }
-
-    /**
-     * @param array $httpClientOptions
-     * @return ClientConfig
-     */
-    public function setHttpClientOptions(array $httpClientOptions): self
-    {
-        if ($this->httpClientOptions != $httpClientOptions) {
-            $this->httpClientOptions = $httpClientOptions;
-            $this->sensitivePropertyChanged = true;
-        }
         return $this;
     }
 

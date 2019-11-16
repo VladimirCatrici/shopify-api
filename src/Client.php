@@ -33,15 +33,15 @@ class Client implements ClientInterface
         $this->initClient();
     }
 
-    private function initClient(): void
+    protected function initClient(): void
     {
         $this->client = new \GuzzleHttp\Client([
-                'base_uri' => $this->config->getBaseUrl(),
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'X-Shopify-Access-Token' => $this->config->getAccessToken()
-                ]
-            ] + $this->config->getHttpClientOptions());
+            'base_uri' => $this->config->getBaseUrl(),
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'X-Shopify-Access-Token' => $this->config->getAccessToken()
+            ]
+        ]);
     }
 
     /**
