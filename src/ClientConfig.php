@@ -59,10 +59,6 @@ class ClientConfig implements ArrayAccess
      * @var bool
      */
     protected $sensitivePropertyChanged = false;
-    /**
-     * @var Handle
-     */
-    private $handler;
 
     /**
      * ClientConfig constructor.
