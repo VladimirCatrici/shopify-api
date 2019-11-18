@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 -   API class deprecated, use Client instead
 
+## 0.1.2 - 2019-11-18
+### Fixed
+-   RequestException->getDetailsJson() method now returns correct request details
+
 ## 0.1.1 - 2019-11-14
 ### Added
 -   CHANGELOG.md
