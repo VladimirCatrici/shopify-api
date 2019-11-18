@@ -29,7 +29,7 @@ class RequestException extends Exception
      * @param Client $client
      * @param \GuzzleHttp\Exception\RequestException $previous
      */
-    public function __construct(Client $client, $previous = null)
+    public function __construct(Client $client, \GuzzleHttp\Exception\RequestException $previous = null)
     {
         $this->client = $client;
         $this->request = $previous->getRequest();
@@ -52,9 +52,21 @@ class RequestException extends Exception
      */
     public function getDetailsJson(): string
     {
+        $uri = $this->request->getUri();
         $output = [
             'msg' => parent::getPrevious()->getMessage(),
-            'request' => $this->request
+            'request' => [
+                'method' => $this->request->getMethod(),
+                'uri' => [
+                    'scheme'    => $uri->getScheme(),
+                    'host'      => $uri->getHost(),
+                    'path'      => $uri->getPath(),
+                    'port'      => $uri->getPort(),
+                    'query'     => $uri->getQuery()
+                ],
+                'headers' => $this->request->getHeaders(),
+                'body' => $this->request->getBody()->getContents()
+            ]
         ];
         if (!empty($this->response)) {
             $body = $this->response->getBody();
