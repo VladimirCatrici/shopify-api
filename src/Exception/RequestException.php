@@ -34,9 +34,7 @@ class RequestException extends Exception
         $this->client = $client;
         $this->request = $previous->getRequest();
         $this->response = $previous->getResponse();
-        $body = $this->response->getBody();
-        $body->seek(0);
-        parent::__construct($body->getContents(), $this->response->getStatusCode(), $previous);
+        parent::__construct((string) $this->response->getBody(), $this->response->getStatusCode(), $previous);
     }
 
     /**
@@ -47,13 +45,18 @@ class RequestException extends Exception
         return $this->response;
     }
 
+    public function getRequest(): Request
+    {
+        return $this->request;
+    }
+
     /**
      * @return string
      */
     public function getDetailsJson(): string
     {
         $uri = $this->request->getUri();
-        $output = [
+        return json_encode([
             'msg' => parent::getPrevious()->getMessage(),
             'request' => [
                 'method' => $this->request->getMethod(),
@@ -65,18 +68,13 @@ class RequestException extends Exception
                     'query'     => $uri->getQuery()
                 ],
                 'headers' => $this->request->getHeaders(),
-                'body' => $this->request->getBody()->getContents()
-            ]
-        ];
-        if (!empty($this->response)) {
-            $body = $this->response->getBody();
-            $body->seek(0);
-            $output['response'] = [
+                'body' => (string) $this->request->getBody()
+            ],
+            'response' => [
                 'code' => $this->response->getStatusCode(),
-                'body' => $body->getContents(),
+                'body' => (string) $this->response->getBody(),
                 'headers' => $this->response->getHeaders()
-            ];
-        }
-        return json_encode($output);
+            ]
+        ]);
     }
 }

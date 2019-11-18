@@ -166,12 +166,13 @@ use VladimirCatrici\Shopify\Exception\RequestException;
 try {
     $products = $api->get('products');
 } catch (RequestException $e) {
-    $response = $e->getResponse(); // GuzzleHttp\Psr7\Response object
+    $request = $e->getRequest(); // PSR-7/Request object
+
+    $response = $e->getResponse(); // PSR-7/Response object
     $code = $response->getStatusCode(); // int
     $headers = $response->getHeaders(); // array
-    $body = $response->getBody();
-    $body->seek(0);
-    $bodyContent = $body->getContents(); // string
+    $bodyStream = $response->getBody(); // Stream (PSR-7/StreamInterface)
+    $bodyContent = (string) $response->getBody(); // string (or $body->__toString())
     
     // Details of the errors including exception message, request and response details
     echo $e->getDetailsJson();

@@ -43,6 +43,50 @@ class RequestExceptionTest extends TestCase
         }
     }
 
+    public function testGetRequest()
+    {
+        self::$mock->append(new Response(500));
+        $postData = [
+            'product' => [
+                'title' => 'Test product title'
+            ]
+        ];
+        $postDataJson = json_encode($postData);
+        try {
+            self::$api->post('products', [
+                'product' => [
+                    'title' => 'Test product title'
+                ]
+            ]);
+        } catch (RequestException $e) {
+            $request = $e->getRequest();
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame($postDataJson, (string) $request->getBody());
+            $this->assertTrue($request->hasHeader('X-Shopify-Access-Token'));
+            $this->assertSame('test-token', $request->getHeaderLine('X-Shopify-Access-Token'));
+            $uri = $request->getUri();
+            $this->assertSame('https', $uri->getScheme());
+            $this->assertSame('test-domain.myshopify.com', $uri->getHost());
+            $this->assertSame('/admin/products.json', $uri->getPath());
+            $this->assertEmpty($uri->getQuery());
+        }
+    }
+
+    public function testGetRequestQuery()
+    {
+        self::$mock->append(new Response(500));
+        try {
+            self::$api->get('products', [
+                'limit' => 20,
+                'test-key' => 'test-val'
+            ]);
+        } catch (RequestException $e) {
+            $request = $e->getRequest();
+            $this->assertSame('GET', $request->getMethod());
+            $this->assertSame('limit=20&test-key=test-val', $request->getUri()->getQuery());
+        }
+    }
+
     public function testGetDetailsJsonOnGetRequest()
     {
         self::$mock->append(new Response(500, ['X-Test-Header' => '12345'], 'Test Body'));
@@ -87,6 +131,14 @@ class RequestExceptionTest extends TestCase
             $this->assertInternalType('array', $detailsArr['response']['headers']);
             $this->assertArrayHasKey('X-Test-Header', $detailsArr['response']['headers']);
             $this->assertEquals('12345', $detailsArr['response']['headers']['X-Test-Header'][0]);
+
+            // Test response object
+            $response = $e->getResponse();
+            $this->assertSame(500, $response->getStatusCode());
+            $this->assertTrue($response->hasHeader('X-Test-Header'));
+            $this->assertSame('12345', $response->getHeaderLine('X-Test-Header'));
+            $this->assertSame('Test Body', $response->getBody()->__toString());
+            $this->assertSame('Test Body', (string) $response->getBody());
         }
     }
 
@@ -137,6 +189,14 @@ class RequestExceptionTest extends TestCase
             $this->assertInternalType('array', $detailsArr['response']['headers']);
             $this->assertArrayHasKey('X-Test-Header', $detailsArr['response']['headers']);
             $this->assertEquals('12345', $detailsArr['response']['headers']['X-Test-Header'][0]);
+
+            // Test response object
+            $response = $e->getResponse();
+            $this->assertSame(500, $response->getStatusCode());
+            $this->assertTrue($response->hasHeader('X-Test-Header'));
+            $this->assertSame('12345', $response->getHeaderLine('X-Test-Header'));
+            $this->assertSame('Test Internal Server Error', $response->getBody()->__toString());
+            $this->assertSame('Test Internal Server Error', (string) $response->getBody());
         }
     }
 }
