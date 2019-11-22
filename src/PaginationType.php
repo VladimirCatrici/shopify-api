@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use Exception;
@@ -159,7 +161,7 @@ class PaginationType
      * @param null $apiVersion
      * @return bool
      */
-    private function supportsPagination(int $type, $endpoint, $apiVersion = null)
+    private function supportsPagination(int $type, string $endpoint, $apiVersion = null): bool
     {
         if ($type == PaginationType::CURSOR) {
             if ($apiVersion >= '2019-07') {

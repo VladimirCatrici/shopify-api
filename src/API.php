@@ -2,18 +2,21 @@
 
 namespace VladimirCatrici\Shopify;
 
-use DateTime;
-use DateTimeZone;
 use Exception;
 use VladimirCatrici\Shopify\Exception\RequestException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
-use VladimirCatrici\Shopify\Response\ResponseArrayFormatter;
+use VladimirCatrici\Shopify\Response\ResponseDefaultFormatter;
 use VladimirCatrici\Shopify\Response\ResponseDataFormatterInterface;
 
-class API
+/**
+ * Class API
+ * @package VladimirCatrici\Shopify
+ * @deprecated This class is deprecated since v0.2.0 and will be removed in v0.3.0. Use Client class instead
+ */
+class API implements ClientInterface
 {
     /**
      * @var string Shopify store handle. If you shop permanent domain is test.myshopify.com - the "test" is the handle
@@ -115,7 +118,7 @@ class API
 
         // Initialize default response data formatter (if necessary)
         if (empty($this->responseFormatter)) {
-            $this->responseFormatter = new ResponseArrayFormatter();
+            $this->responseFormatter = new ResponseDefaultFormatter();
         }
     }
 
@@ -128,44 +131,44 @@ class API
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $query
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function get($endpoint, $query = [])
+    public function get(string $endpoint, array $query = [])
     {
         return $this->request('get', $endpoint, $query);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $data
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function post($endpoint, $data = [])
+    public function post(string $endpoint, array $data = [])
     {
         return $this->request('post', $endpoint, null, $data);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @param array $data
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function put($endpoint, $data = [])
+    public function put(string $endpoint, array $data = [])
     {
         return $this->request('put', $endpoint, null, $data);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function delete($endpoint)
+    public function delete(string $endpoint)
     {
         return $this->request('delete', $endpoint);
     }
@@ -330,8 +333,7 @@ class API
         if ($matches[1] < 2019) {
             throw new InvalidArgumentException(
                 sprintf(
-                    'Invalid API version year: "%s". The API versioning has been released in 2019. ' .
-                    $readMoreAboutApiVersioning,
+                    'Invalid API version year: "%s". The API versioning has been released in 2019. ' . $readMoreAboutApiVersioning,
                     $value
                 )
             );
@@ -377,44 +379,8 @@ class API
      * @return string
      * @throws Exception
      */
-    public static function getOldestSupportedVersion($date = null)
+    public static function getOldestSupportedVersion($date = '')
     {
-        if (is_string($date)) {
-            $dt = new DateTime($date);
-        } elseif ($date instanceof DateTime) {
-            $dt = $date;
-        } else {
-            $dt = new DateTime();
-        }
-        $tz = new DateTimeZone('UTC');
-        $dt->setTimezone($tz);
-        $currentYearMonth = $dt->format('Y-m');
-        if ($currentYearMonth < '2020-04') {
-            return '2019-04';
-        }
-        $currentYearMonthParts = explode('-', $currentYearMonth);
-        $currentYear = $currentYearMonthParts[0];
-        $currentMonth = $currentYearMonthParts[1];
-
-        $monthMapping = [
-            '01' => '04',
-            '02' => '04',
-            '03' => '04',
-            '04' => '07',
-            '05' => '07',
-            '06' => '07',
-            '07' => '10',
-            '08' => '10',
-            '09' => '10',
-            '10' => '01',
-            '11' => '01',
-            '12' => '01'
-        ];
-        $returnMonth = $monthMapping[$currentMonth];
-
-        // If the latest supported version has been released in April or later,
-        // then current date is Jan-Sep and that means that it was released in the previous year.
-        // Still the same year for any date withing Oct-Dec range.
-        return $currentYear - ($returnMonth >= '04' ? 1 : 0) . '-' . $returnMonth;
+        return getOldestSupportedVersion($date);
     }
 }

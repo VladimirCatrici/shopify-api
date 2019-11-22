@@ -7,6 +7,8 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use VladimirCatrici\Shopify\API;
+use VladimirCatrici\Shopify\Client;
+use VladimirCatrici\Shopify\ClientConfig;
 use VladimirCatrici\Shopify\ClientManager;
 use PHPUnit\Framework\TestCase;
 
@@ -26,6 +28,14 @@ class ClientManagerTest extends TestCase {
         ]);
         $api = ClientManager::get('test');
         $this->assertInstanceOf(API::class, $api);
+
+        $clientConfig = (new ClientConfig())
+            ->setHandle('test')
+            ->setAccessToken('test')
+            ->setMaxLImitRate(0.2);
+        ClientManager::setConfig('test-client-config', $clientConfig);
+        $client = ClientManager::get('test-client-config');
+        $this->assertInstanceOf(Client::class, $client);
     }
 
     public function testPassingResponseDataFormatterOption() {

@@ -17,10 +17,11 @@ Usage
 ```php
 require_once 'vendor/autoload.php';
 use VladimirCatrici\Shopify;
-Shopify\ClientManager::setConfig('default', [
-    'domain' => 'your-shop-handle',
-    'access_token' => 'your-access-token',
+$clientConfig = new ClientConfig([
+    'handle' => 'your-shop-handle', // with or without ".myshopify.com"
+    'accessToken' => 'your-access-token'
 ]);
+Shopify\ClientManager::setConfig('default', $clientConfig);
 $api = Shopify\ClientManager::get('default');
 ```
 
@@ -28,26 +29,30 @@ $api = Shopify\ClientManager::get('default');
 
 There are a few additional options you can pass to the ClientManager.
 
--   `api_version` (default: `the oldest stable supported version`)
+-   `apiVersion` (default: `the oldest stable supported version`)
 The Shopify API version you want to use.  
 Read more about [API versioning at Shopify](https://help.shopify.com/en/api/versioning).   
 
--   `max_attempts_on_server_errors` (default: `1`)  
+-   `maxAttemptsOnServerErrors` (default: `1`)  
 Number of attempts trying to execute the request. 
 It's useful because sometimes Shopify may respond with 500 error.
 I would recommend set this to `2` or `3`. The default value is `1` though. 
 
--   `max_attempts_on_rate_limit_errors` (default: `1`)  
+-   `maxAttemptsOnRateLimitErrors` (default: `1`)  
 Number of attempts trying to execute the request on getting `429 Too Many Connections` error.
 This might be useful if the same API key is used by other apps which may lead to exceeding the rate limit.
 The recommended value would be somewhere under the 10.  
 
--   `max_limit_rate` (default: `0.5`)  
+-   `maxLimitRate` (default: `0.5`)  
 Number between 0 and 1 describing the maximum limit rate the client should reach before going sleep. 
 See `max_limit_rate_sleep_sec` option.  
 
--   `max_limit_rate_sleep_sec` (default: `1`)  
+-   `maxLimitRateSleepSeconds` (default: `1`)  
 Number of seconds to sleep when API reaches the maximum API limit rate specified in `max_limit_rate` option.
+
+-   `responseFormatter` (default: instance of `ResponseDefaultFormatter`)  
+You can create and set up another data formatter for response you're getting from Shopify.
+Your formatter should implement simple `ResponseDataFormatterInterface`. 
 
 ### Basic usage
 

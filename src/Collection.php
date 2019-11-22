@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use BadMethodCallException;
 use Countable;
 use Exception;
 use Iterator;
-use VladimirCatrici\Shopify\Exception\RequestException;
 
 class Collection implements Iterator, Countable
 {
@@ -70,17 +71,22 @@ class Collection implements Iterator, Countable
 
     /**
      * Collection constructor.
-     * @param API $shopify
+     * @param ClientInterface $shopify
      * @param $endpoint
      * @param array $options
-     * @throws RequestException
      * @throws Exception
      */
-    public function __construct(API $shopify, $endpoint, $options = [])
+    public function __construct(ClientInterface $shopify, $endpoint, $options = [])
     {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
-        $this->paginationType = (new PaginationType($endpoint, $this->api->getVersion()))->getType();
+        $apiVersion = is_a(
+            $this->api,
+            API::class
+        ) ? $this->api->getVersion() :
+            (method_exists($this->api, 'getConfig') && method_exists($this->api->getConfig(), 'getApiVersion') ?
+                $this->api->getConfig()->getApiVersion() : getOldestSupportedVersion());
+        $this->paginationType = (new PaginationType($endpoint, $apiVersion))->getType();
 
         if (array_key_exists('limit', $options)) {
             $this->limit = $options['limit'];
@@ -117,9 +123,6 @@ class Collection implements Iterator, Countable
         return $this->currentIndex;
     }
 
-    /**
-     * @throws RequestException
-     */
     public function next()
     {
         $this->partIndex++;
@@ -143,9 +146,6 @@ class Collection implements Iterator, Countable
         $this->currentIndex++;
     }
 
-    /**
-     * @throws RequestException
-     */
     public function rewind()
     {
         $this->page = 1;
@@ -171,7 +171,6 @@ class Collection implements Iterator, Countable
 
     /**
      * Fetches Shopify items based on current parameters like page, limit and options specified on object creation
-     * @throws RequestException
      */
     private function fetch()
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace VladimirCatrici\Shopify;
 
 use InvalidArgumentException;
@@ -44,10 +46,10 @@ class ClientManager
      * and `headers`
      *
      * @param string $key
-     * @param array $config An associative array with client configuration
+     * @param ClientConfig|array $config An associative array with client configuration
      * @return void
      */
-    public static function setConfig(string $key, $config = [])
+    public static function setConfig(string $key, $config = []): void
     {
         self::$clients[$key] = $config;
     }
@@ -56,10 +58,10 @@ class ClientManager
      * Returns a configured Shopify API client
      *
      * @param $key
-     * @return API
+     * @return ClientInterface
      * @throws InvalidArgumentException
      */
-    public static function get($key)
+    public static function get($key): ClientInterface
     {
         if (!isset(self::$clients[$key])) {
             throw new InvalidArgumentException(sprintf(
@@ -67,9 +69,12 @@ class ClientManager
                 $key
             ));
         }
-        if (is_array(self::$clients[$key])) { // Initialize the API client (if necessary)
+        if (is_array(self::$clients[$key])) { // Initialize the client (if necessary)
             $config = self::$clients[$key];
             self::$clients[$key] = new API($config['domain'], $config['access_token'], $config);
+            trigger_error('Configuration with array deprecated, use ClientConfig instead', E_USER_DEPRECATED);
+        } elseif (is_a(self::$clients[$key], ClientConfig::class)) {
+            self::$clients[$key] = new Client(self::$clients[$key]);
         }
         return self::$clients[$key];
     }
