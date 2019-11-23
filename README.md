@@ -3,6 +3,12 @@ Shopify API
 This is a simple PHP library that provides a quick and easy way to work with Shopify REST API.
 It uses Guzzle as HTTP client. 
 
+IMPORTANT
+=
+This branch created from v0.2.0 release to support some old projects that are still on the old version of PHP. 
+It's highly recommended to use PHP 7.1+ and the latest release of this library. 
+I'm not going to support this branch too long or use versioning here. Use it at your own risk. 
+
 Installation
 -
 

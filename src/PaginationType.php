@@ -1,17 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace VladimirCatrici\Shopify;
 
 use Exception;
 
 class PaginationType
 {
-    public const NOT_REQUIRED = 0;
-    public const CURSOR = 1;
-    public const SINCE = 2;
-    public const PAGE = 3;
+    const NOT_REQUIRED = 0;
+    const CURSOR = 1;
+    const SINCE = 2;
+    const PAGE = 3;
     /**
      * @var int
      */
@@ -150,7 +148,7 @@ class PaginationType
     /**
      * @return int
      */
-    public function getType(): int
+    public function getType()
     {
         return $this->type;
     }
@@ -161,7 +159,7 @@ class PaginationType
      * @param null $apiVersion
      * @return bool
      */
-    private function supportsPagination(int $type, string $endpoint, $apiVersion = null): bool
+    private function supportsPagination($type, $endpoint, $apiVersion = null)
     {
         if ($type == PaginationType::CURSOR) {
             if ($apiVersion >= '2019-07') {

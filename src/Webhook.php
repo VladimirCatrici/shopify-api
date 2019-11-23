@@ -42,13 +42,13 @@ class Webhook
         return $dataFormatter->output(self::getData());
     }
 
-    public static function getDataAsArray(): array
+    public static function getDataAsArray()
     {
         $formatter = new WebhookArrayFormatter();
         return self::getData($formatter);
     }
 
-    public static function validate(string $token): bool
+    public static function validate($token)
     {
         $calculated_hmac = base64_encode(hash_hmac('sha256', self::getData(), $token, true));
         return (static::getHmacSha256() == $calculated_hmac);

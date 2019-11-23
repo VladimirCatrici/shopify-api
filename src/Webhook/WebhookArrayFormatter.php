@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace VladimirCatrici\Shopify\Webhook;
 
 class WebhookArrayFormatter implements WebhookDataFormatterInterface
@@ -10,7 +8,7 @@ class WebhookArrayFormatter implements WebhookDataFormatterInterface
      * @param $data
      * @return array
      */
-    public function output(string $data): array
+    public function output($data)
     {
         return json_decode($data, true);
     }

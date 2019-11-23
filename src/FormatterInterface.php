@@ -8,5 +8,5 @@ interface FormatterInterface
      * @param mixed $input
      * @return mixed
      */
-    public function output(string $input);
+    public function output($input);
 }

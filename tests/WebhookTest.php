@@ -202,7 +202,7 @@ class WebhookTest extends TestCase {
      * @noinspection PhpDocMissingThrowsInspection
      * @return array
      */
-    private function sendWebhook() : array {
+    private function sendWebhook() {
         /** @noinspection PhpUnhandledExceptionInspection */
         $response = self::$client->request('POST', 'http://localhost:7777', $this->requestOptions);
         $respContent = $response->getBody()->getContents();

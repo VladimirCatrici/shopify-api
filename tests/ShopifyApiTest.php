@@ -291,7 +291,8 @@ class ShopifyApiTest extends TestCase {
      * @throws Exception
      */
     public function testChoosingCorrectOldestSupportedApiVersion($date, $apiVersionExpected) {
-        $this->assertEquals($apiVersionExpected, self::$api::getOldestSupportedVersion($date));
+        $api = self::$api;
+        static::assertEquals($apiVersionExpected, $api::getOldestSupportedVersion($date));
     }
 
     /**

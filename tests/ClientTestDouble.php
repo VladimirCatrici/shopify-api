@@ -20,7 +20,7 @@ class ClientTestDouble extends Client
         $this->initClient();
     }
 
-    protected function initClient(): void
+    protected function initClient()
     {
         $config = $this->getConfig();
         $this->client = new \GuzzleHttp\Client([

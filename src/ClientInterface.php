@@ -4,8 +4,8 @@ namespace VladimirCatrici\Shopify;
 
 interface ClientInterface
 {
-    public function get(string $endpoint, array $query = []);
-    public function post(string $endpoint, array $data = []);
-    public function put(string $endpoint, array $data = []);
-    public function delete(string $endpoint);
+    public function get($endpoint, $query = []);
+    public function post($endpoint, $data = []);
+    public function put($endpoint, $data = []);
+    public function delete($endpoint);
 }

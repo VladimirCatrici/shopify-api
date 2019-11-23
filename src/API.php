@@ -92,7 +92,7 @@ class API implements ClientInterface
      * @param string $accessToken
      * @param array $clientOptions GuzzleHttp client options
      */
-    public function __construct(string $domain, string $accessToken, array $clientOptions = [])
+    public function __construct($domain, $accessToken, $clientOptions = [])
     {
         $this->handle = trim(preg_replace('/\.myshopify\.com$/', '', $domain));
         $this->accessToken = $accessToken;
@@ -136,7 +136,7 @@ class API implements ClientInterface
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function get(string $endpoint, array $query = [])
+    public function get($endpoint, $query = [])
     {
         return $this->request('get', $endpoint, $query);
     }
@@ -147,7 +147,7 @@ class API implements ClientInterface
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function post(string $endpoint, array $data = [])
+    public function post($endpoint, $data = [])
     {
         return $this->request('post', $endpoint, null, $data);
     }
@@ -158,7 +158,7 @@ class API implements ClientInterface
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function put(string $endpoint, array $data = [])
+    public function put($endpoint, $data = [])
     {
         return $this->request('put', $endpoint, null, $data);
     }
@@ -168,7 +168,7 @@ class API implements ClientInterface
      * @return mixed|StreamInterface
      * @throws RequestException
      */
-    public function delete(string $endpoint)
+    public function delete($endpoint)
     {
         return $this->request('delete', $endpoint);
     }

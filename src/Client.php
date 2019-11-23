@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace VladimirCatrici\Shopify;
 
 use GuzzleHttp\Psr7\Response;
@@ -27,13 +25,13 @@ class Client implements ClientInterface
      */
     public $respHeaders;
 
-    public function __construct(ClientConfig $config)
+    public function __construct($config)
     {
         $this->config = $config;
         $this->initClient();
     }
 
-    protected function initClient(): void
+    protected function initClient()
     {
         $this->client = new \GuzzleHttp\Client([
             'base_uri' => $this->config->getBaseUrl(),
@@ -50,7 +48,7 @@ class Client implements ClientInterface
      * @return mixed
      * @throws RequestException
      */
-    public function get(string $endpoint, array $query = [])
+    public function get($endpoint, $query = [])
     {
         return $this->request('get', $endpoint, $query);
     }
@@ -61,7 +59,7 @@ class Client implements ClientInterface
      * @return mixed
      * @throws RequestException
      */
-    public function post(string $endpoint, array $data = [])
+    public function post($endpoint, $data = [])
     {
         return $this->request('post', $endpoint, null, $data);
     }
@@ -72,7 +70,7 @@ class Client implements ClientInterface
      * @return mixed
      * @throws RequestException
      */
-    public function put(string $endpoint, array $data = [])
+    public function put($endpoint, $data = [])
     {
         return $this->request('put', $endpoint, null, $data);
     }
@@ -82,7 +80,7 @@ class Client implements ClientInterface
      * @return mixed
      * @throws RequestException
      */
-    public function delete(string $endpoint)
+    public function delete($endpoint)
     {
         return $this->request('delete', $endpoint);
     }
@@ -145,7 +143,7 @@ class Client implements ClientInterface
      * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
      * @return array
      */
-    private function handleRequestException($guzzleRequestException): array
+    private function handleRequestException($guzzleRequestException)
     {
         $output = [
             'server_error' => 0,
@@ -175,7 +173,7 @@ class Client implements ClientInterface
     /**
      * @param Response $response
      */
-    private function requestCallback(Response $response): void
+    private function requestCallback(Response $response)
     {
         $this->respCode = $response->getStatusCode();
         $this->respHeaders = $response->getHeaders();
@@ -187,7 +185,7 @@ class Client implements ClientInterface
         }
     }
 
-    private function generateFullApiRequestURL($endpoint, $queryParams = []): string
+    private function generateFullApiRequestURL($endpoint, $queryParams = [])
     {
         if (!preg_match('/\.json$/', $endpoint)) {
             $endpoint .= '.json';
@@ -199,7 +197,7 @@ class Client implements ClientInterface
         return $endpoint;
     }
 
-    private function rateLimitSleepIfNeeded(Response $response): void
+    private function rateLimitSleepIfNeeded(Response $response)
     {
         if ($response->hasHeader('X-Shopify-Shop-Api-Call-Limit')) {
             $limit = explode('/', $response->getHeaderLine('X-Shopify-Shop-Api-Call-Limit'));
@@ -213,7 +211,7 @@ class Client implements ClientInterface
     /**
      * @return ClientConfig
      */
-    public function getConfig(): ClientConfig
+    public function getConfig()
     {
         return $this->config;
     }
@@ -221,7 +219,7 @@ class Client implements ClientInterface
     /**
      * @param ClientConfig $config
      */
-    public function setConfig(ClientConfig $config): void
+    public function setConfig(ClientConfig $config)
     {
         $this->config = $config;
     }

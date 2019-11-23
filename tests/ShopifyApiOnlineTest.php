@@ -93,7 +93,7 @@ class ShopifyApiOnlineTest extends TestCase {
      * @return int
      * @throws RequestException
      */
-    public function testPut(int $productId) {
+    public function testPut($productId) {
         $newProductTitle = 'New product title';
         $response = self::$api->put('products/' . $productId, [
             'product' => [
@@ -114,7 +114,7 @@ class ShopifyApiOnlineTest extends TestCase {
      * @param int $productId
      * @throws RequestException
      */
-    public function testDelete(int $productId) {
+    public function testDelete($productId) {
         self::$api->delete('products/' . $productId);
         $this->assertEquals(200, self::$api->respCode);
 

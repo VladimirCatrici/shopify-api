@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace VladimirCatrici\Shopify;
 
 use ArrayAccess;
@@ -75,7 +73,7 @@ class ClientConfig implements ArrayAccess
             $setMethodName = 'set' . ucfirst($key);
             $this->{$setMethodName}($val);
         }
-        $this->setHandle($options['handle'] ?? '');
+        $this->setHandle(!empty($options['handle']) ? $options['handle'] : '');
         if (empty($this->responseFormatter)) {
             $this->setResponseFormatter(new ResponseDefaultFormatter());
         }
@@ -84,7 +82,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return string
      */
-    public function getHandle(): string
+    public function getHandle()
     {
         return $this->handle;
     }
@@ -92,7 +90,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return string
      */
-    public function getPermanentDomain(): string
+    public function getPermanentDomain()
     {
         return $this->permanentDomain;
     }
@@ -100,7 +98,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return string
      */
-    public function getBaseUrl(): string
+    public function getBaseUrl()
     {
         return $this->baseUrl;
     }
@@ -109,7 +107,7 @@ class ClientConfig implements ArrayAccess
      * @param string $handle
      * @return ClientConfig
      */
-    public function setHandle(string $handle): self
+    public function setHandle($handle)
     {
         if ($this->handle != $handle) {
             $this->handle = $handle;
@@ -131,7 +129,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return string
      */
-    public function getAccessToken(): string
+    public function getAccessToken()
     {
         return $this->accessToken;
     }
@@ -140,7 +138,7 @@ class ClientConfig implements ArrayAccess
      * @param string $accessToken
      * @return ClientConfig
      */
-    public function setAccessToken(string $accessToken): self
+    public function setAccessToken($accessToken)
     {
         if ($this->accessToken != $accessToken) {
             $this->accessToken = $accessToken;
@@ -152,7 +150,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return int
      */
-    public function getMaxAttemptsOnServerErrors(): int
+    public function getMaxAttemptsOnServerErrors()
     {
         return $this->maxAttemptsOnServerErrors;
     }
@@ -161,7 +159,7 @@ class ClientConfig implements ArrayAccess
      * @param int $maxAttemptsOnServerErrors
      * @return ClientConfig
      */
-    public function setMaxAttemptsOnServerErrors(int $maxAttemptsOnServerErrors): self
+    public function setMaxAttemptsOnServerErrors($maxAttemptsOnServerErrors)
     {
         $this->maxAttemptsOnServerErrors = $maxAttemptsOnServerErrors;
         return $this;
@@ -170,7 +168,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return int
      */
-    public function getMaxAttemptsOnRateLimitErrors(): int
+    public function getMaxAttemptsOnRateLimitErrors()
     {
         return $this->maxAttemptsOnRateLimitErrors;
     }
@@ -179,7 +177,7 @@ class ClientConfig implements ArrayAccess
      * @param int $maxAttemptsOnRateLimitErrors
      * @return ClientConfig
      */
-    public function setMaxAttemptsOnRateLimitErrors(int $maxAttemptsOnRateLimitErrors): self
+    public function setMaxAttemptsOnRateLimitErrors($maxAttemptsOnRateLimitErrors)
     {
         $this->maxAttemptsOnRateLimitErrors = $maxAttemptsOnRateLimitErrors;
         return $this;
@@ -191,7 +189,7 @@ class ClientConfig implements ArrayAccess
      * this inspection as we don't pass any params.
      * @return string
      */
-    public function getApiVersion(): string
+    public function getApiVersion()
     {
         if (empty($this->apiVersion)) {
             /** @noinspection PhpUnhandledExceptionInspection */
@@ -204,7 +202,7 @@ class ClientConfig implements ArrayAccess
      * @param string $apiVersion
      * @return ClientConfig
      */
-    public function setApiVersion(string $apiVersion): self
+    public function setApiVersion($apiVersion)
     {
         $this->validateApiVersion($apiVersion);
         $this->apiVersion = $apiVersion;
@@ -215,7 +213,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return float
      */
-    public function getMaxLimitRate(): float
+    public function getMaxLimitRate()
     {
         return $this->maxLimitRate;
     }
@@ -224,7 +222,7 @@ class ClientConfig implements ArrayAccess
      * @param float $maxLimitRate
      * @return ClientConfig
      */
-    public function setMaxLimitRate(float $maxLimitRate): self
+    public function setMaxLimitRate($maxLimitRate)
     {
         $this->maxLimitRate = $maxLimitRate;
         return $this;
@@ -233,7 +231,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return int
      */
-    public function getMaxLimitRateSleepSeconds(): int
+    public function getMaxLimitRateSleepSeconds()
     {
         return $this->maxLimitRateSleepSeconds;
     }
@@ -242,7 +240,7 @@ class ClientConfig implements ArrayAccess
      * @param int $maxLimitRateSleepSeconds
      * @return ClientConfig
      */
-    public function setMaxLimitRateSleepSeconds(int $maxLimitRateSleepSeconds): self
+    public function setMaxLimitRateSleepSeconds($maxLimitRateSleepSeconds)
     {
         $this->maxLimitRateSleepSeconds = $maxLimitRateSleepSeconds;
         return $this;
@@ -251,7 +249,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return ResponseDataFormatterInterface
      */
-    public function getResponseFormatter(): ResponseDataFormatterInterface
+    public function getResponseFormatter()
     {
         return $this->responseFormatter;
     }
@@ -260,7 +258,7 @@ class ClientConfig implements ArrayAccess
      * @param ResponseDataFormatterInterface $responseFormatter
      * @return ClientConfig
      */
-    public function setResponseFormatter(ResponseDataFormatterInterface $responseFormatter): self
+    public function setResponseFormatter($responseFormatter)
     {
         $this->responseFormatter = $responseFormatter;
         return $this;
@@ -305,7 +303,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @return bool
      */
-    public function isSensitivePropertyChanged(): bool
+    public function isSensitivePropertyChanged()
     {
         return $this->sensitivePropertyChanged;
     }
@@ -313,7 +311,7 @@ class ClientConfig implements ArrayAccess
     /**
      * @param bool $sensitivePropertyChanged
      */
-    public function setSensitivePropertyChanged(bool $sensitivePropertyChanged): void
+    public function setSensitivePropertyChanged($sensitivePropertyChanged)
     {
         $this->sensitivePropertyChanged = $sensitivePropertyChanged;
     }

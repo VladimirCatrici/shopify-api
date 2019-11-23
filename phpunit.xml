@@ -3,9 +3,13 @@
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/8.2/phpunit.xsd"
     bootstrap="tests/bootstrap.php"
     colors="true"
+    convertErrorsToExceptions="false"
+    convertNoticesToExceptions="false"
+    convertWarningsToExceptions="false"
+    convertDeprecationsToExceptions="false"
 >
     <listeners>
-        <listener class="\Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+        <listener class="\Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
     </listeners>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">

@@ -16,21 +16,21 @@ class WebhookTestDouble extends Webhook {
     /**
      * @param string $hmacSha256
      */
-    public static function setHmacSha256($hmacSha256): void {
+    public static function setHmacSha256($hmacSha256) {
         static::$hmacSha256 = $hmacSha256;
     }
 
     /**
      * @param string $shopDomain
      */
-    public static function setShopDomain($shopDomain): void {
+    public static function setShopDomain($shopDomain) {
         static::$shopDomain = $shopDomain;
     }
 
     /**
      * @param string $topic
      */
-    public static function setTopic($topic): void {
+    public static function setTopic($topic) {
         static::$topic = $topic;
     }
 

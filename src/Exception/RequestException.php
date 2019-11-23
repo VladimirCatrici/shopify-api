@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace VladimirCatrici\Shopify\Exception;
 
 use Exception;
@@ -40,12 +38,12 @@ class RequestException extends Exception
     /**
      * @return Response
      */
-    public function getResponse(): Response
+    public function getResponse()
     {
         return $this->response;
     }
 
-    public function getRequest(): Request
+    public function getRequest()
     {
         return $this->request;
     }
@@ -53,7 +51,7 @@ class RequestException extends Exception
     /**
      * @return string
      */
-    public function getDetailsJson(): string
+    public function getDetailsJson()
     {
         $uri = $this->request->getUri();
         return json_encode([

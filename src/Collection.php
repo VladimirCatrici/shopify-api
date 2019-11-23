@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace VladimirCatrici\Shopify;
 
 use BadMethodCallException;
@@ -9,6 +7,10 @@ use Countable;
 use Exception;
 use Iterator;
 
+/**
+ * Class Collection
+ * @package VladimirCatrici\Shopify
+ */
 class Collection implements Iterator, Countable
 {
     private $endpoint;

@@ -57,7 +57,7 @@ class CollectionTest extends TestCase {
         'events'
     ];
 
-    public static function setUpBeforeClass() : void {
+    public static function setUpBeforeClass() {
         self::$api = new API('test', 'test');
         self::$mock = new MockHandler();
         $handler = HandlerStack::create(self::$mock);
