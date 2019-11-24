@@ -32,7 +32,8 @@ class RequestException extends Exception
         $this->client = $client;
         $this->request = $previous->getRequest();
         $this->response = $previous->getResponse();
-        parent::__construct((string) $this->response->getBody(), $this->response->getStatusCode(), $previous);
+        $body = $previous->hasResponse() ? (string) $this->response->getBody() : '';
+        parent::__construct($body, $this->response->getStatusCode(), $previous);
     }
 
     /**
@@ -68,11 +69,11 @@ class RequestException extends Exception
                 'headers' => $this->request->getHeaders(),
                 'body' => (string) $this->request->getBody()
             ],
-            'response' => [
+            'response' => $this->response !== null ? [
                 'code' => $this->response->getStatusCode(),
                 'body' => (string) $this->response->getBody(),
                 'headers' => $this->response->getHeaders()
-            ]
+            ] : ''
         ]);
     }
 }
