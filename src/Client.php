@@ -120,6 +120,9 @@ class Client implements ClientInterface
                 $response = $this->client->request($method, $fullApiRequestURL, $options);
                 break;
             } catch (\GuzzleHttp\Exception\RequestException $e) {
+                if (!$e->hasResponse()) {
+                    throw $e;
+                }
                 $lastException = new RequestException($this->client, $e);
                 $handlerResult = $this->handleRequestException($e);
                 if ($handlerResult['break']) {
@@ -145,7 +148,7 @@ class Client implements ClientInterface
      * @param $guzzleRequestException \GuzzleHttp\Exception\RequestException
      * @return array
      */
-    private function handleRequestException($guzzleRequestException): array
+    private function handleRequestException(\GuzzleHttp\Exception\RequestException $guzzleRequestException): array
     {
         $output = [
             'server_error' => 0,
