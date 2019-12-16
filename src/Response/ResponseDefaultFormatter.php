@@ -10,7 +10,7 @@ class ResponseDefaultFormatter implements ResponseDataFormatterInterface
      */
     public function output($data)
     {
-        $body = json_decode($data, true, 512);
+        $body = json_decode($data, true, 512, JSON_BIGINT_AS_STRING);
         return is_array($body) && !empty(key($body)) ? $body[key($body)] : $body;
     }
 }
