@@ -15,7 +15,7 @@ class Webhook
      */
     public static function getTopic()
     {
-        return filter_input(INPUT_SERVER, 'HTTP_X_SHOPIFY_TOPIC', FILTER_SANITIZE_STRING);
+        return static::getServerVar('HTTP_X_SHOPIFY_TOPIC');
     }
 
     /**
@@ -23,7 +23,7 @@ class Webhook
      */
     public static function getShopDomain()
     {
-        return filter_input(INPUT_SERVER, 'HTTP_X_SHOPIFY_SHOP_DOMAIN', FILTER_SANITIZE_STRING);
+        return static::getServerVar('HTTP_X_SHOPIFY_SHOP_DOMAIN');
     }
 
     /**
@@ -31,7 +31,7 @@ class Webhook
      */
     public static function getApiVersion()
     {
-        return filter_input(INPUT_SERVER, 'HTTP_X_SHOPIFY_API_VERSION', FILTER_SANITIZE_STRING);
+        return static::getServerVar('HTTP_X_SHOPIFY_API_VERSION');
     }
 
     public static function getData(WebhookDataFormatterInterface $dataFormatter = null)
@@ -65,10 +65,20 @@ class Webhook
     public static function getHmacSha256()
     {
         return !empty(self::$hmacSha256) ?
-            self::$hmacSha256 : self::$hmacSha256 = filter_input(
-                INPUT_SERVER,
-                'HTTP_X_SHOPIFY_HMAC_SHA256',
-                FILTER_SANITIZE_STRING
-            );
+            self::$hmacSha256 : self::$hmacSha256 = static::getServerVar('HTTP_X_SHOPIFY_HMAC_SHA256');
+    }
+
+    /**
+     * @param $name
+     * @return string|null
+     */
+    private static function getServerVar($name)
+    {
+        if (filter_has_var(INPUT_SERVER, $name)) {
+            return filter_input(INPUT_SERVER, $name, FILTER_SANITIZE_STRING);
+        } elseif (isset($_SERVER[$name])) {
+            return filter_var($_SERVER[$name], FILTER_SANITIZE_STRING);
+        }
+        return null;
     }
 }
