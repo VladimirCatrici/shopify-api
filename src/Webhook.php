@@ -62,7 +62,7 @@ class Webhook
     /**
      * @return string|null
      */
-    private static function getHmacSha256()
+    public static function getHmacSha256()
     {
         return !empty(self::$hmacSha256) ?
             self::$hmacSha256 : self::$hmacSha256 = filter_input(
