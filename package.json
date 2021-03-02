@@ -6,7 +6,6 @@
   "directories": {
     "test": "tests"
   },
-  "dependencies": {},
   "devDependencies": {
     "remark-cli": "^8.0.1",
     "remark-lint": "^6.0.5",
