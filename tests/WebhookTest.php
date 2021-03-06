@@ -101,8 +101,7 @@ class WebhookTest extends TestCase {
         $this->assertEquals(200, $response->getStatusCode());
         $respContent = $response->getBody()->getContents();
         $this->assertJson($respContent);
-        $resp = json_decode($respContent, true);
-        return $resp;
+        return json_decode($respContent, true);
     }
 
     /**
@@ -113,17 +112,6 @@ class WebhookTest extends TestCase {
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-Topic'], $resp['topic']);
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-Shop-Domain'], $resp['shop_domain']);
         $this->assertEquals($this->requestOptions['headers']['X-Shopify-API-Version'], $resp['api_version']);
-    }
-
-    public function testChangedHeadersReturnNull() {
-        // Setup HTTP headers into the global $_SERVER which MUST BE ignored by Webhook class
-        foreach ($this->requestOptions['headers'] as $key => $val) {
-            $_SERVER['HTTP_' . str_replace('-', '_', mb_strtoupper($key))] = $val;
-        }
-
-        $this->assertNull(Webhook::getTopic());
-        $this->assertNull(Webhook::getShopDomain());
-        $this->assertNull(Webhook::getApiVersion());
     }
 
     public function testMissingHeadersReturnEmptyStrings() {

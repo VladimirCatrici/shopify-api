@@ -113,7 +113,7 @@ class ClientConfig implements ArrayAccess
     {
         if ($this->handle != $handle) {
             $this->handle = $handle;
-            $this->permanentDomain = $this->handle . '.myshopify.com';
+            $this->permanentDomain = str_replace('.myshopify.com', '', trim($this->handle)) . '.myshopify.com';
             $this->resetBaseUrl();
         }
         return $this;

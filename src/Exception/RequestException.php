@@ -27,7 +27,7 @@ class RequestException extends Exception
     /**
      * RequestException constructor.
      * @param Client $client
-     * @param \GuzzleHttp\Exception\RequestException $previous
+     * @param \GuzzleHttp\Exception\RequestException $previous Only if has response
      */
     public function __construct(Client $client, \GuzzleHttp\Exception\RequestException $previous = null)
     {
@@ -70,11 +70,11 @@ class RequestException extends Exception
                 'headers' => $this->request->getHeaders(),
                 'body' => (string) $this->request->getBody()
             ],
-            'response' => [
+            'response' => $this->response !== null ? [
                 'code' => $this->response->getStatusCode(),
                 'body' => (string) $this->response->getBody(),
                 'headers' => $this->response->getHeaders()
-            ]
+            ] : ''
         ]);
     }
 }
