@@ -11,7 +11,6 @@ class PaginationType
     public const NOT_REQUIRED = 0;
     public const CURSOR = 1;
     public const SINCE = 2;
-    public const PAGE = 3;
     /**
      * @var int
      */
@@ -50,12 +49,6 @@ class PaginationType
             'products\/\d+\/variants',
             'smart_collections',
             'metafields'
-        ],
-        // Page-based pagination available (up to 2019-07 incl.)
-        PaginationType::PAGE => [
-            'inventory_items',
-            'inventory_levels',
-            'marketing_events'
         ],
         PaginationType::CURSOR => [
             // According to: https://help.shopify.com/en/api/versioning/release-notes/2019-07
@@ -136,11 +129,6 @@ class PaginationType
 
         if ($this->supportsPagination(PaginationType::SINCE, $endpoint)) {
             $this->type = PaginationType::SINCE;
-            return;
-        }
-
-        if ($this->supportsPagination(PaginationType::PAGE, $endpoint)) {
-            $this->type = PaginationType::PAGE;
             return;
         }
 

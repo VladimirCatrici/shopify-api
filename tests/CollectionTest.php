@@ -72,7 +72,7 @@ class CollectionTest extends TestCase {
      * @throws Exception
      */
     public function testCount() {
-        self::$mock->append(new Response(200, ['X-Shopify-API-Version' => '2019-04'], '{"count": 1001}'));
+        self::$mock->append(new Response(200, ['X-Shopify-API-Version' => '2020-07'], '{"count": 1001}'));
         $collection = new Collection(self::$api, 'products');
         $this->assertEquals(1001, count($collection));
         $this->assertEquals(1001, $collection->count());
@@ -103,7 +103,6 @@ class CollectionTest extends TestCase {
      */
     public function testIteration($endpoint) {
         $this->mockCollection(2, 10);
-        self::$mock->append(new Response(200, [], '{}'));
         $products = new Collection(self::$api, $endpoint, ['limit' => 10]);
         $this->assertEquals(20, count($products));
         foreach ($products as $i => $product) {
@@ -123,40 +122,7 @@ class CollectionTest extends TestCase {
     /**
      * @throws RequestException
      */
-    public function testIterationWithException() {
-        // Preparing data
-        self::$mock->append(new Response(200, [], '{"count": 3}'));
-        $id = 1000;
-        $pageProducts = [];
-        for ($item = 0; $item < 2; $item++) {
-            $pageProducts[] = [
-                'id' => $id,
-                'title' => 'Test product ' . ($id - 999)
-            ];
-            $id++;
-        }
-        $pageProductsJson = json_encode(['products' => $pageProducts]);
-        self::$mock->append(new Response(200, [], $pageProductsJson));
-        self::$mock->append(new Response(500));
-
-        // Test
-        $products = new Collection(self::$api, 'products', ['limit' => 2]);
-        $this->assertEquals(3, count($products));
-        foreach ($products as $i => $product) {
-            $this->assertNotNull($product);
-            $this->assertEquals($i + 1000, $product['id']);
-            $this->assertEquals('Test product ' . ($i + 1), $product['title']);
-            if ($i == 1) {
-                $this->expectException(RequestException::class);
-            }
-        }
-    }
-
-    /**
-     * @throws RequestException
-     */
     public function testCursorBasedPagination() {
-        self::$api->setVersion('2019-07');
         $this->mockCollection(3, 20, true);
         $products = new Collection(self::$api, 'products', ['limit' => 20]);
         $this->assertEquals(60, count($products));
@@ -172,8 +138,7 @@ class CollectionTest extends TestCase {
      * @throws RequestException
      */
     public function testCursorBasedPaginationWithoutPages() {
-        self::$api->setVersion('2019-07');
-        $this->mockCollection(1, 5, true);
+        $this->mockCollection(1, 5);
         $products = new Collection(self::$api, 'products', ['limit' => 5]);
         $this->assertEquals(5, count($products));
         $numProducts = 0;
@@ -242,9 +207,7 @@ class CollectionTest extends TestCase {
      * @throws RequestException
      */
     public function testEndpointWithoutCountOperation() {
-        $api = new API('test', 'test', [
-            'api_version' => '2019-07'
-        ]);
+        $api = new API('test', 'test');
         $inventoryLevels = new Collection($api, 'inventory_levels');
         $this->expectException(BadMethodCallException::class);
         count($inventoryLevels);
@@ -332,7 +295,7 @@ class CollectionTest extends TestCase {
 
     public function dataForTestingEndpointsPaginationThatDontSupportCountOperation() {
         $output = [];
-        $apiVersions = ['2019-04', '2019-07'];
+        $apiVersions = ['2020-04', '2020-07'];
         foreach ($apiVersions as $apiVersion) {
             // ['api_version', 'endpoint', 'num_pages', 'items_per_page', 'last_page_items']
             $output[] = [$apiVersion, 'inventory_levels', 3, 2, 2];
@@ -394,7 +357,7 @@ class CollectionTest extends TestCase {
      * @param $limit
      * @param bool $cursorBasedPagination
      */
-    private function mockCollection($numPages, $limit, $cursorBasedPagination = false) {
+    private function mockCollection($numPages, $limit) {
         self::$mock->append(new Response(200, [], '{"count": ' . $numPages * $limit . '}'));
         $id = 1000;
         for ($page = 0; $page < $numPages; $page++) {
@@ -408,17 +371,15 @@ class CollectionTest extends TestCase {
             }
             $pageProductsJson = json_encode(['products' => $pageProducts]);
             $headers = [];
-            if ($cursorBasedPagination) {
-                $links = [];
-                if ($page > 0) {
-                    $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="previous"';
-                }
-                if ($page < ($numPages - 1)) {
-                    $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="next"';
-                }
-                if (count($links) > 0) {
-                    $headers['Link'] = implode(',', $links);
-                }
+            $links = [];
+            if ($page > 0) {
+                $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="previous"';
+            }
+            if ($page < ($numPages - 1)) {
+                $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="next"';
+            }
+            if (count($links) > 0) {
+                $headers['Link'] = implode(',', $links);
             }
             self::$mock->append(new Response(200, $headers, $pageProductsJson));
         }

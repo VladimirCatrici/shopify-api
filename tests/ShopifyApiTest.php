@@ -267,7 +267,7 @@ class ShopifyApiTest extends TestCase {
         $api = new API('test', 'test', [
             'handler' => $handler
         ]);
-        $apiVersion = '2019-04';
+        $apiVersion = API::getOldestSupportedVersion();
         $mock->append(
             new Response(200, ['X-Shopify-API-Version' => $apiVersion], '{"shop": {"id": 1234567890}}')
         );
