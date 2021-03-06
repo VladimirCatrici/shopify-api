@@ -161,7 +161,7 @@ class Client implements ClientInterface
             case 429:
                 $output['rate_limit_error'] = 1;
                 if ($guzzleRequestException->getResponse()->hasHeader('Retry-After')) {
-                    sleep($guzzleRequestException->getResponse()->getHeaderLine('Retry-After'));
+                    sleep((int) $guzzleRequestException->getResponse()->getHeaderLine('Retry-After'));
                     break;
                 }
                 sleep(1);
@@ -205,7 +205,7 @@ class Client implements ClientInterface
             $limit = explode('/', $response->getHeaderLine('X-Shopify-Shop-Api-Call-Limit'));
             $rate = $limit[0] / $limit[1];
             if ($rate > $this->config->getMaxLimitRate()) {
-                sleep($this->config->getMaxLimitRateSleepSeconds());
+                sleep((int) $this->config->getMaxLimitRateSleepSeconds());
             }
         }
     }
