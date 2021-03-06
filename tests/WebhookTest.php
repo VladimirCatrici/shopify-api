@@ -196,4 +196,28 @@ class WebhookTest extends TestCase {
         $respContent = $response->getBody()->getContents();
         return json_decode($respContent, true);
     }
+
+    public function testGetTopic() {
+        $_SERVER['HTTP_X_SHOPIFY_TOPIC'] = 'products/create';
+        self::assertEquals('products/create', Webhook::getTopic());
+
+        $_SERVER['HTTP_X_SHOPIFY_TOPIC'] = 'products/update';
+        self::assertEquals('products/update', Webhook::getTopic());
+    }
+
+    public function testGetShopDomain() {
+        $_SERVER['HTTP_X_SHOPIFY_SHOP_DOMAIN'] = 'test.myshopify.com';
+        self::assertEquals('test.myshopify.com', Webhook::getShopDomain());
+
+        $_SERVER['HTTP_X_SHOPIFY_SHOP_DOMAIN'] = 'test2.myshopify.com';
+        self::assertEquals('test2.myshopify.com', Webhook::getShopDomain());
+    }
+
+    public function testGetApiVersion() {
+        $_SERVER['HTTP_X_SHOPIFY_API_VERSION'] = '2020-10';
+        self::assertEquals('2020-10', Webhook::getApiVersion());
+
+        $_SERVER['HTTP_X_SHOPIFY_API_VERSION'] = '2021-01';
+        self::assertEquals('2021-01', Webhook::getApiVersion());
+    }
 }
