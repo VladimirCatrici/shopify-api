@@ -112,6 +112,16 @@ class CollectionTest extends TestCase {
         }
     }
 
+    public function testSinceIdPaginationType() {
+        $this->mockCollection(2, 10, false, true);
+        $charges = new Collection(self::$api, 'application_charges', ['limit' => 10]);
+        foreach ($charges as $i => $charge) {
+            self::assertNotNull($charge);
+            self::assertEquals($i + 1000, $charge['id']);
+            self::assertEquals('Test product ' . ++$i, $charge['title']);
+        }
+    }
+
     public function iterationEndpointsDataProvider() {
         return [
             ['products'],
@@ -357,8 +367,10 @@ class CollectionTest extends TestCase {
      * @param $limit
      * @param bool $cursorBasedPagination
      */
-    private function mockCollection($numPages, $limit) {
-        self::$mock->append(new Response(200, [], '{"count": ' . $numPages * $limit . '}'));
+    private function mockCollection($numPages, $limit, $countable = true, $sinceTypePagination = false) {
+        if ($countable) {
+            self::$mock->append(new Response(200, [], '{"count": ' . $numPages * $limit . '}'));
+        }
         $id = 1000;
         for ($page = 0; $page < $numPages; $page++) {
             $pageProducts = [];
@@ -371,17 +383,23 @@ class CollectionTest extends TestCase {
             }
             $pageProductsJson = json_encode(['products' => $pageProducts]);
             $headers = [];
-            $links = [];
-            if ($page > 0) {
-                $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="previous"';
-            }
-            if ($page < ($numPages - 1)) {
-                $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="next"';
-            }
-            if (count($links) > 0) {
-                $headers['Link'] = implode(',', $links);
+            if (!$sinceTypePagination) {
+                $links = [];
+                if ($page > 0) {
+                    $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="previous"';
+                }
+                if ($page < ($numPages - 1)) {
+                    $links[] = '<https://test.myshopify.com/admin/api/2019-07/products.json?limit=20&page_info=' . $this->rndStr() . '>; rel="next"';
+                }
+                if (count($links) > 0) {
+                    $headers['Link'] = implode(',', $links);
+                }
             }
             self::$mock->append(new Response(200, $headers, $pageProductsJson));
+        }
+
+        if ($sinceTypePagination) {
+            self::$mock->append(new Response(200, [], '{}'));
         }
     }
 

@@ -112,17 +112,16 @@ class PaginationType
     /**
      * PaginationType constructor.
      * @param $endpoint
-     * @param $apiVersion
      * @throws Exception
      */
-    public function __construct($endpoint, $apiVersion = null)
+    public function __construct($endpoint)
     {
         if ($this->supportsPagination(PaginationType::NOT_REQUIRED, $endpoint)) {
             $this->type = PaginationType::NOT_REQUIRED;
             return;
         }
 
-        if ($this->supportsPagination(PaginationType::CURSOR, $endpoint, $apiVersion)) {
+        if ($this->supportsPagination(PaginationType::CURSOR, $endpoint)) {
             $this->type = PaginationType::CURSOR;
             return;
         }
@@ -149,20 +148,15 @@ class PaginationType
      * @param null $apiVersion
      * @return bool
      */
-    private function supportsPagination(int $type, string $endpoint, $apiVersion = null): bool
+    private function supportsPagination(int $type, string $endpoint): bool
     {
         if ($type == PaginationType::CURSOR) {
-            if ($apiVersion >= '2019-07') {
-                foreach ($this->endpointsSupport[PaginationType::CURSOR] as $version => $endpointsRegEx) {
-                    if ($version > $apiVersion) {
+            foreach ($this->endpointsSupport[PaginationType::CURSOR] as $version => $endpointsRegEx) {
+                foreach ($endpointsRegEx as $re) {
+                    if (!preg_match('/' . $re . '/', $endpoint)) {
                         continue;
                     }
-                    foreach ($endpointsRegEx as $re) {
-                        if (!preg_match('/' . $re . '/', $endpoint)) {
-                            continue;
-                        }
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;

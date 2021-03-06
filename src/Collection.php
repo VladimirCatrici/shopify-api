@@ -80,13 +80,7 @@ class Collection implements Iterator, Countable
     {
         $this->api = $shopify;
         $this->endpoint = $endpoint;
-        $apiVersion = is_a(
-            $this->api,
-            API::class
-        ) ? $this->api->getVersion() :
-            (method_exists($this->api, 'getConfig') && method_exists($this->api->getConfig(), 'getApiVersion') ?
-                $this->api->getConfig()->getApiVersion() : getOldestSupportedVersion());
-        $this->paginationType = (new PaginationType($endpoint, $apiVersion))->getType();
+        $this->paginationType = (new PaginationType($endpoint))->getType();
 
         if (array_key_exists('limit', $options)) {
             $this->limit = $options['limit'];
@@ -128,19 +122,10 @@ class Collection implements Iterator, Countable
         $this->partIndex++;
         if ($this->partIndex == $this->chunkCount) {
             $this->page++;
-            switch ($this->paginationType) {
-                case PaginationType::CURSOR:
-                    if (!empty($this->nextPageInfo)) {
-                        $this->fetch();
-                    }
-                    break;
-                case PaginationType::SINCE:
-                    $this->fetch();
-                    break;
-                case PaginationType::NOT_REQUIRED:
-                    break; // Do nothing, no action required
-                default: // PaginationType::PAGE
-                    $this->fetch();
+            if ($this->paginationType === PaginationType::SINCE ||
+                ($this->paginationType === PaginationType::CURSOR && !empty($this->nextPageInfo))
+            ) {
+                $this->fetch();
             }
         }
         $this->currentIndex++;
@@ -193,11 +178,6 @@ class Collection implements Iterator, Countable
                 $options['since_id'] = $this->page == 1 ? 1 : $this->items[$this->partIndex - 1]['id'];
                 $options += $this->options;
                 break;
-            case PaginationType::NOT_REQUIRED:
-                break; // Do nothing, no need to add options
-            default: // PaginationType::PAGE
-                $options['page'] = $this->page;
-                $options += $this->options;
         }
         $this->items = $this->api->get($this->endpoint, $options);
         $this->chunkCount = count($this->items);
