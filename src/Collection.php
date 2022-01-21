@@ -6,7 +6,6 @@ namespace VladimirCatrici\Shopify;
 
 use BadMethodCallException;
 use Countable;
-use Exception;
 use Iterator;
 
 class Collection implements Iterator, Countable
@@ -74,7 +73,7 @@ class Collection implements Iterator, Countable
      * @param ClientInterface $shopify
      * @param $endpoint
      * @param array $options
-     * @throws Exception
+     * @throws Exception\RequestException
      */
     public function __construct(ClientInterface $shopify, $endpoint, $options = [])
     {
