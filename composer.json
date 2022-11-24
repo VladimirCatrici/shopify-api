@@ -14,10 +14,10 @@
 		"php": ">=7.1",
         "ext-curl": "*",
         "ext-json": "*",
-        "vlucas/phpdotenv": "^3.4",
-        "guzzlehttp/guzzle": "^6.3.3"
+        "guzzlehttp/guzzle": "^7"
     },
     "require-dev": {
+        "vlucas/phpdotenv": "^3.4",
 		"phpunit/phpunit": "6.*",
         "symfony/phpunit-bridge": "^4.3",
         "codacy/coverage": "dev-master",
