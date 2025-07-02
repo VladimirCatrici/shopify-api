@@ -188,11 +188,11 @@ class Collection implements Iterator, Countable
 
     private function updateNextPageInfo()
     {
-        if (!array_key_exists('Link', $this->api->respHeaders)) { // All results on the same page
+        if (!array_key_exists('Link', $this->api->respHeaders) && !array_key_exists('link', $this->api->respHeaders)) { // All results on the same page
             $this->nextPageInfo = null;
             return;
         }
-        $linkHeaderValue = $this->api->respHeaders['Link'][0];
+        $linkHeaderValue = array_key_exists('Link', $this->api->respHeaders) ? $this->api->respHeaders['Link'][0] : $this->api->respHeaders['link'][0];
         preg_match('/page_info=([^>]+)>;\srel="next"/i', $linkHeaderValue, $matches);
         if (empty($matches[1])) { // No next page
             $this->nextPageInfo = null;
